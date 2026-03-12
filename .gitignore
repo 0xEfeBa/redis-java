@@ -1,0 +1,25 @@
+# Build output
+target/
+
+# IDE files
+.idea/
+*.iml
+.project
+.settings/
+.classpath
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
+
+# Redis persistence artefacts
+*.aof
+*.rdb
+appendonlydir/
+
+# Documentation / planning notes (not part of the source release)
+*.md
+
