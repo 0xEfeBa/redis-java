@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 
-import com.redisjava.testutil.Assert;
+import static org.junit.jupiter.api.Assertions.*;
 import com.redisjava.pubsub.PubSubRegistry;
 import com.redisjava.protocol.RespToken;
 
@@ -41,10 +41,10 @@ public class PubSubTest {
         subscribe.execute(conn1, tokens("SUBSCRIBE", "news"));
 
         String resp = conn1.getLastResponse();
-        Assert.assertTrue("starts with *3", resp.startsWith("*3\r\n"));
-        Assert.assertTrue("contains 'subscribe' keyword", resp.contains("subscribe"));
-        Assert.assertTrue("contains channel name", resp.contains("news"));
-        Assert.assertTrue("contains count :1", resp.contains(":1\r\n"));
+        assertTrue(resp.startsWith("*3\r\n"), "starts with *3");
+        assertTrue(resp.contains("subscribe"), "contains 'subscribe' keyword");
+        assertTrue(resp.contains("news"), "contains channel name");
+        assertTrue(resp.contains(":1\r\n"), "contains count :1");
     }
 
     /** Subscribe to two channels — two confirmations, increasing count */
@@ -54,8 +54,8 @@ public class PubSubTest {
 
         String resp = conn1.getLastResponse();
         // First channel → count 1, second → count 2
-        Assert.assertTrue("count 1 present", resp.contains(":1\r\n"));
-        Assert.assertTrue("count 2 present", resp.contains(":2\r\n"));
+        assertTrue(resp.contains(":1\r\n"), "count 1 present");
+        assertTrue(resp.contains(":2\r\n"), "count 2 present");
     }
 
     /** Subscribing twice to the same channel should be idempotent */
@@ -67,7 +67,7 @@ public class PubSubTest {
 
         String resp = conn1.getLastResponse();
         // Still subscribed to exactly 1 channel
-        Assert.assertTrue("count remains 1", resp.contains(":1\r\n"));
+        assertTrue(resp.contains(":1\r\n"), "count remains 1");
     }
 
     /** SUBSCRIBE with no channel arg returns error */
@@ -75,7 +75,7 @@ public class PubSubTest {
     public void testSubscribe_noArgs_returnsError() {
         subscribe.execute(conn1, tokens("SUBSCRIBE"));
         String resp = conn1.getLastResponse();
-        Assert.assertTrue("error response", resp.startsWith("-"));
+        assertTrue(resp.startsWith("-"), "error response");
     }
 
     // ── PUBLISH ────────────────────────────────────────────────────────────
@@ -89,21 +89,21 @@ public class PubSubTest {
         publish.execute(conn2, tokens("PUBLISH", "sports", "goal!"));
 
         // conn2 receives the count (1 subscriber)
-        Assert.assertTrue("publisher gets :1", conn2.getLastResponse().contains(":1\r\n"));
+        assertTrue(conn2.getLastResponse().contains(":1\r\n"), "publisher gets :1");
 
         // conn1 receives the push message
         String push = conn1.getLastResponse();
-        Assert.assertTrue("push is *3 array", push.startsWith("*3\r\n"));
-        Assert.assertTrue("push contains 'message'", push.contains("message"));
-        Assert.assertTrue("push contains channel", push.contains("sports"));
-        Assert.assertTrue("push contains payload", push.contains("goal!"));
+        assertTrue(push.startsWith("*3\r\n"), "push is *3 array");
+        assertTrue(push.contains("message"), "push contains 'message'");
+        assertTrue(push.contains("sports"), "push contains channel");
+        assertTrue(push.contains("goal!"), "push contains payload");
     }
 
     /** PUBLISH to a channel with no subscribers returns :0 */
     @Test
     public void testPublish_noSubscribers_returnsZero() {
         publish.execute(conn1, tokens("PUBLISH", "ghost-channel", "hello"));
-        Assert.assertTrue("returns :0", conn1.getLastResponse().contains(":0\r\n"));
+        assertTrue(conn1.getLastResponse().contains(":0\r\n"), "returns :0");
     }
 
     /** PUBLISH delivers to multiple subscribers */
@@ -117,16 +117,16 @@ public class PubSubTest {
         MockConnection publisher = new MockConnection();
         publish.execute(publisher, tokens("PUBLISH", "events", "ping"));
 
-        Assert.assertTrue("publisher sees :2", publisher.getLastResponse().contains(":2\r\n"));
-        Assert.assertTrue("conn1 got message", conn1.getLastResponse().contains("ping"));
-        Assert.assertTrue("conn2 got message", conn2.getLastResponse().contains("ping"));
+        assertTrue(publisher.getLastResponse().contains(":2\r\n"), "publisher sees :2");
+        assertTrue(conn1.getLastResponse().contains("ping"), "conn1 got message");
+        assertTrue(conn2.getLastResponse().contains("ping"), "conn2 got message");
     }
 
     /** PUBLISH with wrong arg count returns error */
     @Test
     public void testPublish_wrongArgCount_returnsError() {
         publish.execute(conn1, tokens("PUBLISH", "chan"));
-        Assert.assertTrue("error", conn1.getLastResponse().startsWith("-"));
+        assertTrue(conn1.getLastResponse().startsWith("-"), "error");
     }
 
     // ── UNSUBSCRIBE ────────────────────────────────────────────────────────
@@ -140,10 +140,10 @@ public class PubSubTest {
         unsubscribe.execute(conn1, tokens("UNSUBSCRIBE", "x"));
 
         String resp = conn1.getLastResponse();
-        Assert.assertTrue("contains 'unsubscribe' keyword", resp.contains("unsubscribe"));
-        Assert.assertTrue("channel x mentioned", resp.contains("x"));
+        assertTrue(resp.contains("unsubscribe"), "contains 'unsubscribe' keyword");
+        assertTrue(resp.contains("x"), "channel x mentioned");
         // After removing 'x', still subscribed to 'y' → count = 1
-        Assert.assertTrue("count is 1", resp.contains(":1\r\n"));
+        assertTrue(resp.contains(":1\r\n"), "count is 1");
     }
 
     /** UNSUBSCRIBE with no args removes all subscriptions */
@@ -157,7 +157,7 @@ public class PubSubTest {
         // After full unsubscribe, PUBLISH should deliver 0 messages
         MockConnection pub = new MockConnection();
         publish.execute(pub, tokens("PUBLISH", "a", "hi"));
-        Assert.assertTrue("no messages delivered to a", pub.getLastResponse().contains(":0\r\n"));
+        assertTrue(pub.getLastResponse().contains(":0\r\n"), "no messages delivered to a");
     }
 
     /** UNSUBSCRIBE when not subscribed sends null-channel confirmation */
@@ -165,8 +165,8 @@ public class PubSubTest {
     public void testUnsubscribe_notSubscribed_sendsNull() {
         unsubscribe.execute(conn1, tokens("UNSUBSCRIBE"));
         String resp = conn1.getLastResponse();
-        Assert.assertTrue("null-channel confirmation", resp.contains("unsubscribe"));
-        Assert.assertTrue("count zero", resp.contains(":0\r\n"));
+        assertTrue(resp.contains("unsubscribe"), "null-channel confirmation");
+        assertTrue(resp.contains(":0\r\n"), "count zero");
     }
 
     /** After unsubscribe, no more messages are delivered */
@@ -181,8 +181,8 @@ public class PubSubTest {
         publish.execute(pub, tokens("PUBLISH", "news2", "breaking"));
 
         // conn1 should receive nothing after unsubscribing
-        Assert.assertNull(conn1.getLastResponse());
-        Assert.assertTrue("publisher sees :0", pub.getLastResponse().contains(":0\r\n"));
+        assertNull(conn1.getLastResponse());
+        assertTrue(pub.getLastResponse().contains(":0\r\n"), "publisher sees :0");
     }
 
     // ── Registry ───────────────────────────────────────────────────────────
@@ -194,13 +194,13 @@ public class PubSubTest {
         byte[] chan = "counter-chan".getBytes();
 
         subscribe.execute(conn1, tokens("SUBSCRIBE", "counter-chan"));
-        Assert.assertEquals(1, registry.subscriberCount(chan));
+        assertEquals(1, registry.subscriberCount(chan));
 
         subscribe.execute(conn2, tokens("SUBSCRIBE", "counter-chan"));
-        Assert.assertEquals(2, registry.subscriberCount(chan));
+        assertEquals(2, registry.subscriberCount(chan));
 
         unsubscribe.execute(conn1, tokens("UNSUBSCRIBE", "counter-chan"));
-        Assert.assertEquals(1, registry.subscriberCount(chan));
+        assertEquals(1, registry.subscriberCount(chan));
     }
 
     /** removeAll removes all channels for a connection */
@@ -211,7 +211,7 @@ public class PubSubTest {
 
         MockConnection pub = new MockConnection();
         publish.execute(pub, tokens("PUBLISH", "r1", "msg"));
-        Assert.assertTrue("no receivers after removeAll", pub.getLastResponse().contains(":0\r\n"));
+        assertTrue(pub.getLastResponse().contains(":0\r\n"), "no receivers after removeAll");
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────

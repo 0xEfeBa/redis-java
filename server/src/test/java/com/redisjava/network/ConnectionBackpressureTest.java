@@ -1,8 +1,9 @@
 package com.redisjava.network;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
-
-import com.redisjava.testutil.Assert;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -38,6 +39,7 @@ public class ConnectionBackpressureTest {
         }
     }
 
+    @AfterEach
     public void teardown() {
         if (eventLoop != null) eventLoop.stop();
         if (serverThread != null) {
@@ -46,6 +48,7 @@ public class ConnectionBackpressureTest {
     }
 
     /** Yazma kuyruğu taştığında bağlantı kesilmeli */
+    @Test
     public void testOverflowTriggersDisconnect() throws Exception {
         if (!serverStarted) return;
 
@@ -58,7 +61,7 @@ public class ConnectionBackpressureTest {
             out.flush();
 
             boolean disconnected = handler.awaitDisconnect(5, TimeUnit.SECONDS);
-            Assert.assertTrue("disconnect tetiklendi", disconnected);
+            assertTrue(disconnected, "disconnect tetiklendi");
         }
     }
 

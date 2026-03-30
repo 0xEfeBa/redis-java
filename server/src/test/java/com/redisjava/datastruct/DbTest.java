@@ -5,7 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.redisjava.memory.MemoryManager;
-import com.redisjava.testutil.Assert;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for the Db singleton (lifecycle, set/get, expiry, del, clear).
@@ -23,7 +23,7 @@ public class DbTest {
     /** Db.getInstance() after init() is non-null */
     @Test
     public void testInit_instanceNonNull() {
-        Assert.assertNotNull(Db.getInstance());
+        assertNotNull(Db.getInstance());
     }
 
     /** Db.init() replaces existing instance */
@@ -32,9 +32,9 @@ public class DbTest {
         Db first = Db.getInstance();
         Db.init(new MemoryManager(4));
         Db second = Db.getInstance();
-        Assert.assertNotNull(second);
+        assertNotNull(second);
         // New instance is a fresh Db
-        Assert.assertEquals(0, second.size());
+        assertEquals(0, second.size());
     }
 
     // ── set / get (byte[]) ────────────────────────────────────────────────
@@ -45,15 +45,15 @@ public class DbTest {
         Db db = Db.getInstance();
         db.set("name".getBytes(), "Alice".getBytes());
         byte[] val = db.get("name".getBytes());
-        Assert.assertNotNull(val);
-        Assert.assertEquals("Alice", new String(val));
+        assertNotNull(val);
+        assertEquals("Alice", new String(val));
     }
 
     /** get on missing key returns null */
     @Test
     public void testGet_missingKey_returnsNull() {
         byte[] val = Db.getInstance().get("ghost".getBytes());
-        Assert.assertNull(val);
+        assertNull(val);
     }
 
     /** set overwrites existing key */
@@ -62,7 +62,7 @@ public class DbTest {
         Db db = Db.getInstance();
         db.set("k".getBytes(), "v1".getBytes());
         db.set("k".getBytes(), "v2".getBytes());
-        Assert.assertEquals("v2", new String(db.get("k".getBytes())));
+        assertEquals("v2", new String(db.get("k".getBytes())));
     }
 
     // ── del ───────────────────────────────────────────────────────────────
@@ -73,14 +73,14 @@ public class DbTest {
         Db db = Db.getInstance();
         db.set("d".getBytes(), "v".getBytes());
         boolean deleted = db.del("d".getBytes());
-        Assert.assertTrue("del returns true", deleted);
-        Assert.assertNull(db.get("d".getBytes()));
+        assertTrue(deleted, "del returns true");
+        assertNull(db.get("d".getBytes()));
     }
 
     /** del missing key returns false */
     @Test
     public void testDel_missingKey_returnsFalse() {
-        Assert.assertFalse("del missing returns false", Db.getInstance().del("no-key".getBytes()));
+        assertFalse(Db.getInstance().del("no-key".getBytes()), "del missing returns false");
     }
 
     // ── size ─────────────────────────────────────────────────────────────
@@ -89,10 +89,10 @@ public class DbTest {
     @Test
     public void testSize_tracks() {
         Db db = Db.getInstance();
-        Assert.assertEquals(0, db.size());
+        assertEquals(0, db.size());
         db.set("a".getBytes(), "1".getBytes());
         db.set("b".getBytes(), "2".getBytes());
-        Assert.assertEquals(2, db.size());
+        assertEquals(2, db.size());
     }
 
     // ── clear / flushAll ──────────────────────────────────────────────────
@@ -104,8 +104,8 @@ public class DbTest {
         db.set("x".getBytes(), "1".getBytes());
         db.set("y".getBytes(), "2".getBytes());
         db.clear();
-        Assert.assertEquals(0, db.size());
-        Assert.assertNull(db.get("x".getBytes()));
+        assertEquals(0, db.size());
+        assertNull(db.get("x".getBytes()));
     }
 
     // ── TTL / expiry ──────────────────────────────────────────────────────
@@ -118,8 +118,8 @@ public class DbTest {
         long futureMs = System.currentTimeMillis() + 60_000;
         db.expireAt("exp".getBytes(), futureMs);
         long ttl = db.ttlSeconds("exp".getBytes());
-        Assert.assertTrue("TTL > 0", ttl > 0);
-        Assert.assertTrue("TTL <= 60", ttl <= 60);
+        assertTrue(ttl > 0, "TTL > 0");
+        assertTrue(ttl <= 60, "TTL <= 60");
     }
 
     /** persist() removes TTL, ttlSeconds returns -1 */
@@ -130,6 +130,6 @@ public class DbTest {
         db.expireAt("pk".getBytes(), System.currentTimeMillis() + 60_000);
         db.persist("pk".getBytes());
         long ttl = db.ttlSeconds("pk".getBytes());
-        Assert.assertEquals(-1L, ttl);
+        assertEquals(-1L, ttl);
     }
 }

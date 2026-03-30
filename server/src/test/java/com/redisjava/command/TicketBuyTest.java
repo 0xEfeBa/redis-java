@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import com.redisjava.datastruct.Db;
 import com.redisjava.memory.MemoryManager;
 import com.redisjava.protocol.RedisProtocolHandler;
-import com.redisjava.testutil.Assert;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.ByteBuffer;
 
@@ -57,7 +57,7 @@ public class TicketBuyTest {
         addToQueue("waiting:concert1", "user1", 1.0);
         setTickets("tickets:concert1", 100);
         String resp = exec("TICKET.BUY", "waiting:concert1", "tickets:concert1", "user1", "300");
-        Assert.assertEquals("+OK\r\n", resp);
+        assertEquals("+OK\r\n", resp);
     }
     @Test
 
@@ -66,7 +66,7 @@ public class TicketBuyTest {
         setTickets("tickets:concert2", 5);
         exec("TICKET.BUY", "waiting:concert2", "tickets:concert2", "user1", "300");
         String resp = exec("GET", "tickets:concert2");
-        Assert.assertEquals("$1\r\n4\r\n", resp);
+        assertEquals("$1\r\n4\r\n", resp);
     }
     @Test
 
@@ -75,7 +75,7 @@ public class TicketBuyTest {
         setTickets("tickets:concert3", 5);
         exec("TICKET.BUY", "waiting:concert3", "tickets:concert3", "user1", "300");
         String resp = exec("ZRANK", "waiting:concert3", "user1");
-        Assert.assertEquals("$-1\r\n", resp);
+        assertEquals("$-1\r\n", resp);
     }
     @Test
 
@@ -85,7 +85,7 @@ public class TicketBuyTest {
         exec("TICKET.BUY", "waiting:concert4", "tickets:concert4", "user42", "300");
         // Reservation key should exist
         String resp = exec("EXISTS", "reservation:user42");
-        Assert.assertEquals(":1\r\n", resp);
+        assertEquals(":1\r\n", resp);
     }
     @Test
 
@@ -95,8 +95,8 @@ public class TicketBuyTest {
         exec("TICKET.BUY", "waiting:concert5", "tickets:concert5", "user99", "300");
         // TTL should be set (> 0)
         String resp = exec("TTL", "reservation:user99");
-        Assert.assertFalse("TTL should be positive", resp.equals(":0\r\n"));
-        Assert.assertFalse("TTL should not be -1 (no expiry)", resp.equals(":-1\r\n"));
+        assertFalse(resp.equals(":0\r\n"), "TTL should be positive");
+        assertFalse(resp.equals(":-1\r\n"), "TTL should not be -1 (no expiry)");
     }
 
     // ── Error cases ────────────────────────────────────────────────────────
@@ -106,8 +106,7 @@ public class TicketBuyTest {
         setTickets("tickets:concert6", 10);
         // No waiting room set
         String resp = exec("TICKET.BUY", "waiting:concert6", "tickets:concert6", "stranger", "300");
-        Assert.assertTrue("Should return NOT_IN_QUEUE error",
-                resp.contains("NOT_IN_QUEUE") || resp.startsWith("-ERR"));
+        assertTrue(resp.contains("NOT_IN_QUEUE") || resp.startsWith("-ERR"), "Should return NOT_IN_QUEUE error");
     }
     @Test
 
@@ -115,7 +114,7 @@ public class TicketBuyTest {
         addToQueue("waiting:concert7", "user1", 1.0);
         setTickets("tickets:concert7", 0); // no tickets left
         String resp = exec("TICKET.BUY", "waiting:concert7", "tickets:concert7", "user1", "300");
-        Assert.assertTrue("Should return SOLD_OUT error", resp.contains("SOLD_OUT"));
+        assertTrue(resp.contains("SOLD_OUT"), "Should return SOLD_OUT error");
     }
     @Test
 
@@ -123,7 +122,7 @@ public class TicketBuyTest {
         addToQueue("waiting:concert8", "user1", 1.0);
         // No tickets key set
         String resp = exec("TICKET.BUY", "waiting:concert8", "tickets:concert8", "user1", "300");
-        Assert.assertTrue("Should return error", resp.startsWith("-ERR"));
+        assertTrue(resp.startsWith("-ERR"), "Should return error");
     }
     @Test
 
@@ -132,8 +131,8 @@ public class TicketBuyTest {
         setTickets("tickets:concert9", 5);
         // 4 args (no ttl arg) → should use default 300s
         String resp = exec("TICKET.BUY", "waiting:concert9", "tickets:concert9", "user10");
-        Assert.assertEquals("+OK\r\n", resp);
+        assertEquals("+OK\r\n", resp);
         String ttlResp = exec("TTL", "reservation:user10");
-        Assert.assertFalse("TTL should be positive", ttlResp.equals(":-1\r\n"));
+        assertFalse(ttlResp.equals(":-1\r\n"), "TTL should be positive");
     }
 }

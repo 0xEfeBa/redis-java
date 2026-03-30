@@ -128,6 +128,7 @@ public class EvictionManager {
      * Returns true when used memory exceeds the eviction threshold.
      */
     private boolean isOverThreshold() {
+        if (memoryManager == null) return false;
         long maxMemory = memoryManager.getMaxMemory();
         if (maxMemory <= 0) return false;
         long used = memoryManager.getUsedMemory();

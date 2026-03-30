@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 
-import com.redisjava.testutil.Assert;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Arrays;
 
@@ -24,27 +24,27 @@ public class SkipListTest {
     @Test
 
     public void testZadd_newElement_returns1() {
-        Assert.assertEquals(1, zset.zadd(1.0, "a".getBytes()));
+        assertEquals(1, zset.zadd(1.0, "a".getBytes()));
     }
     @Test
 
     public void testZadd_existingElement_returns0() {
         zset.zadd(1.0, "a".getBytes());
-        Assert.assertEquals(0, zset.zadd(2.0, "a".getBytes()));
+        assertEquals(0, zset.zadd(2.0, "a".getBytes()));
     }
     @Test
 
     public void testZadd_updatesScore() {
         zset.zadd(1.0, "a".getBytes());
         zset.zadd(5.0, "a".getBytes());
-        Assert.assertEquals(5.0, zset.zscore("a".getBytes()), 0.001);
+        assertEquals(5.0, zset.zscore("a".getBytes()), 0.001);
     }
 
     // ── ZCARD ─────────────────────────────────────────────────────────────
     @Test
 
     public void testZcard_empty_returns0() {
-        Assert.assertEquals(0, zset.zcard());
+        assertEquals(0, zset.zcard());
     }
     @Test
 
@@ -52,27 +52,27 @@ public class SkipListTest {
         zset.zadd(1.0, "a".getBytes());
         zset.zadd(2.0, "b".getBytes());
         zset.zadd(3.0, "c".getBytes());
-        Assert.assertEquals(3, zset.zcard());
+        assertEquals(3, zset.zcard());
     }
 
     // ── ZSCORE ────────────────────────────────────────────────────────────
     @Test
 
     public void testZscore_missingMember_returnsNaN() {
-        Assert.assertTrue("Should be NaN", Double.isNaN(zset.zscore("x".getBytes())));
+        assertTrue(Double.isNaN(zset.zscore("x".getBytes())), "Should be NaN");
     }
     @Test
 
     public void testZscore_returnsCorrectScore() {
         zset.zadd(42.5, "foo".getBytes());
-        Assert.assertEquals(42.5, zset.zscore("foo".getBytes()), 0.001);
+        assertEquals(42.5, zset.zscore("foo".getBytes()), 0.001);
     }
 
     // ── ZRANK ─────────────────────────────────────────────────────────────
     @Test
 
     public void testZrank_missingMember_returnsMinus1() {
-        Assert.assertEquals(-1, zset.zrank("x".getBytes()));
+        assertEquals(-1, zset.zrank("x".getBytes()));
     }
     @Test
 
@@ -80,9 +80,9 @@ public class SkipListTest {
         zset.zadd(3.0, "c".getBytes());
         zset.zadd(1.0, "a".getBytes());
         zset.zadd(2.0, "b".getBytes());
-        Assert.assertEquals(0, zset.zrank("a".getBytes()));
-        Assert.assertEquals(1, zset.zrank("b".getBytes()));
-        Assert.assertEquals(2, zset.zrank("c".getBytes()));
+        assertEquals(0, zset.zrank("a".getBytes()));
+        assertEquals(1, zset.zrank("b".getBytes()));
+        assertEquals(2, zset.zrank("c".getBytes()));
     }
 
     // ── ZRANGE ────────────────────────────────────────────────────────────
@@ -93,9 +93,9 @@ public class SkipListTest {
         zset.zadd(2.0, "b".getBytes());
         zset.zadd(3.0, "c".getBytes());
         SkipList.ZEntry[] entries = zset.zrange(0, -1);
-        Assert.assertEquals(3, entries.length);
-        Assert.assertTrue("first should be a", Arrays.equals("a".getBytes(), entries[0].member));
-        Assert.assertTrue("last should be c",  Arrays.equals("c".getBytes(), entries[2].member));
+        assertEquals(3, entries.length);
+        assertTrue(Arrays.equals("a".getBytes(), entries[0].member), "first should be a");
+        assertTrue(Arrays.equals("c".getBytes(), entries[2].member), "last should be c");
     }
     @Test
 
@@ -104,14 +104,14 @@ public class SkipListTest {
         zset.zadd(2.0, "b".getBytes());
         zset.zadd(3.0, "c".getBytes());
         SkipList.ZEntry[] entries = zset.zrange(1, 1);
-        Assert.assertEquals(1, entries.length);
-        Assert.assertTrue("should be b", Arrays.equals("b".getBytes(), entries[0].member));
+        assertEquals(1, entries.length);
+        assertTrue(Arrays.equals("b".getBytes(), entries[0].member), "should be b");
     }
     @Test
 
     public void testZrange_emptySet_returnsEmptyArray() {
         SkipList.ZEntry[] entries = zset.zrange(0, -1);
-        Assert.assertEquals(0, entries.length);
+        assertEquals(0, entries.length);
     }
 
     // ── ZREM ──────────────────────────────────────────────────────────────
@@ -119,12 +119,12 @@ public class SkipListTest {
 
     public void testZrem_existingMember_returnsTrue() {
         zset.zadd(1.0, "a".getBytes());
-        Assert.assertTrue("zrem should return true", zset.zrem("a".getBytes()));
+        assertTrue(zset.zrem("a".getBytes()), "zrem should return true");
     }
     @Test
 
     public void testZrem_missingMember_returnsFalse() {
-        Assert.assertFalse("zrem should return false", zset.zrem("x".getBytes()));
+        assertFalse(zset.zrem("x".getBytes()), "zrem should return false");
     }
     @Test
 
@@ -132,7 +132,7 @@ public class SkipListTest {
         zset.zadd(1.0, "a".getBytes());
         zset.zadd(2.0, "b".getBytes());
         zset.zrem("a".getBytes());
-        Assert.assertEquals(1, zset.zcard());
+        assertEquals(1, zset.zcard());
     }
     @Test
 
@@ -143,8 +143,8 @@ public class SkipListTest {
         zset.zrem("b".getBytes());
         zset.zadd(4.0, "b".getBytes()); // b now has highest score
         SkipList.ZEntry[] entries = zset.zrange(0, -1);
-        Assert.assertEquals(3, entries.length);
-        Assert.assertTrue("last should be b", Arrays.equals("b".getBytes(), entries[2].member));
+        assertEquals(3, entries.length);
+        assertTrue(Arrays.equals("b".getBytes(), entries[2].member), "last should be b");
     }
 
     // ── Large scale ───────────────────────────────────────────────────────
@@ -154,9 +154,9 @@ public class SkipListTest {
         for (int i = 0; i < 1000; i++) {
             zset.zadd(i, ("member" + i).getBytes());
         }
-        Assert.assertEquals(1000, zset.zcard());
-        Assert.assertEquals(0, zset.zrank("member0".getBytes()));
-        Assert.assertEquals(999, zset.zrank("member999".getBytes()));
-        Assert.assertEquals(500, zset.zrank("member500".getBytes()));
+        assertEquals(1000, zset.zcard());
+        assertEquals(0, zset.zrank("member0".getBytes()));
+        assertEquals(999, zset.zrank("member999".getBytes()));
+        assertEquals(500, zset.zrank("member500".getBytes()));
     }
 }

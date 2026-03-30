@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 
-import com.redisjava.testutil.Assert;
+import static org.junit.jupiter.api.Assertions.*;
 import com.redisjava.command.BfAddCommand;
 import com.redisjava.command.BfExistsCommand;
 import com.redisjava.command.BfReserveCommand;
@@ -43,7 +43,7 @@ public class BloomFilterTest {
             bf.add(item.getBytes());
         }
         for (String item : items) {
-            Assert.assertTrue("should contain " + item, bf.mightContain(item.getBytes()));
+            assertTrue(bf.mightContain(item.getBytes()), "should contain " + item);
         }
     }
 
@@ -58,18 +58,18 @@ public class BloomFilterTest {
         boolean result = bf.mightContain("definitely-not-present-12345".getBytes());
         // We assert false here because this specific value shouldn't be a FP
         // for a freshly initialized filter with only one element.
-        Assert.assertFalse("absent item should return false", result);
+        assertFalse(result, "absent item should return false");
     }
 
     /** count() increments on each add() */
     @Test
     public void testBloom_countTracking() {
         BloomFilter bf = new BloomFilter(100, 0.01);
-        Assert.assertEquals(0L, bf.count());
+        assertEquals(0L, bf.count());
         bf.add("a".getBytes());
-        Assert.assertEquals(1L, bf.count());
+        assertEquals(1L, bf.count());
         bf.add("b".getBytes());
-        Assert.assertEquals(2L, bf.count());
+        assertEquals(2L, bf.count());
     }
 
     /** False positive rate stays within configured bounds over many items */
@@ -93,16 +93,16 @@ public class BloomFilterTest {
         }
         double fpRate = (double) falsePositives / 500;
         // Allow 3x the configured rate as tolerance
-        Assert.assertTrue("FP rate " + fpRate + " exceeds 3x configured " + errorRate,
-                fpRate <= errorRate * 3);
+        assertTrue(fpRate <= errorRate * 3,
+                "FP rate " + fpRate + " exceeds 3x configured " + errorRate);
     }
 
     /** Bit count and hash count are non-zero */
     @Test
     public void testBloom_parameters() {
         BloomFilter bf = new BloomFilter(500, 0.02);
-        Assert.assertTrue("bit count > 0", bf.getBitCount() > 0);
-        Assert.assertTrue("hash count > 0", bf.getHashCount() > 0);
+        assertTrue(bf.getBitCount() > 0, "bit count > 0");
+        assertTrue(bf.getHashCount() > 0, "hash count > 0");
     }
 
     /** Invalid parameters throw */
@@ -114,7 +114,7 @@ public class BloomFilterTest {
         } catch (IllegalArgumentException e) {
             threw = true;
         }
-        Assert.assertTrue("zero capacity should throw", threw);
+        assertTrue(threw, "zero capacity should throw");
 
         threw = false;
         try {
@@ -122,7 +122,7 @@ public class BloomFilterTest {
         } catch (IllegalArgumentException e) {
             threw = true;
         }
-        Assert.assertTrue("zero error rate should throw", threw);
+        assertTrue(threw, "zero error rate should throw");
     }
 
     // ── BF.ADD ────────────────────────────────────────────────────────────
@@ -131,7 +131,7 @@ public class BloomFilterTest {
     @Test
     public void testBfAdd_newItem_returns1() {
         bfAdd.execute(conn, tokens("BF.ADD", "myfilter", "foo"));
-        Assert.assertTrue("returns :1", conn.getLastResponse().contains(":1\r\n"));
+        assertTrue(conn.getLastResponse().contains(":1\r\n"), "returns :1");
     }
 
     /** BF.ADD returns :0 for already-present item */
@@ -140,14 +140,14 @@ public class BloomFilterTest {
         bfAdd.execute(conn, tokens("BF.ADD", "myfilter2", "bar"));
         conn.clear();
         bfAdd.execute(conn, tokens("BF.ADD", "myfilter2", "bar"));
-        Assert.assertTrue("returns :0", conn.getLastResponse().contains(":0\r\n"));
+        assertTrue(conn.getLastResponse().contains(":0\r\n"), "returns :0");
     }
 
     /** BF.ADD wrong arg count returns error */
     @Test
     public void testBfAdd_wrongArgs_returnsError() {
         bfAdd.execute(conn, tokens("BF.ADD", "onlykey"));
-        Assert.assertTrue("error", conn.getLastResponse().startsWith("-"));
+        assertTrue(conn.getLastResponse().startsWith("-"), "error");
     }
 
     // ── BF.EXISTS ────────────────────────────────────────────────────────
@@ -158,14 +158,14 @@ public class BloomFilterTest {
         bfAdd.execute(conn, tokens("BF.ADD", "ef1", "hello"));
         conn.clear();
         bfExists.execute(conn, tokens("BF.EXISTS", "ef1", "hello"));
-        Assert.assertTrue("exists returns :1", conn.getLastResponse().contains(":1\r\n"));
+        assertTrue(conn.getLastResponse().contains(":1\r\n"), "exists returns :1");
     }
 
     /** BF.EXISTS returns :0 for missing key */
     @Test
     public void testBfExists_missingKey_returns0() {
         bfExists.execute(conn, tokens("BF.EXISTS", "no-such-key", "x"));
-        Assert.assertTrue("missing key returns :0", conn.getLastResponse().contains(":0\r\n"));
+        assertTrue(conn.getLastResponse().contains(":0\r\n"), "missing key returns :0");
     }
 
     /** BF.EXISTS returns :0 for absent item */
@@ -174,7 +174,7 @@ public class BloomFilterTest {
         bfAdd.execute(conn, tokens("BF.ADD", "ef2", "present"));
         conn.clear();
         bfExists.execute(conn, tokens("BF.EXISTS", "ef2", "definitely-not-present-99999"));
-        Assert.assertTrue("absent returns :0", conn.getLastResponse().contains(":0\r\n"));
+        assertTrue(conn.getLastResponse().contains(":0\r\n"), "absent returns :0");
     }
 
     // ── BF.RESERVE ───────────────────────────────────────────────────────
@@ -183,12 +183,12 @@ public class BloomFilterTest {
     @Test
     public void testBfReserve_createsFilter() {
         bfReserve.execute(conn, tokens("BF.RESERVE", "bigfilter", "0.001", "100000"));
-        Assert.assertTrue("returns OK", conn.getLastResponse().contains("+OK"));
+        assertTrue(conn.getLastResponse().contains("+OK"), "returns OK");
 
         // Verify by adding an item
         conn.clear();
         bfAdd.execute(conn, tokens("BF.ADD", "bigfilter", "testmember"));
-        Assert.assertTrue("add succeeds", conn.getLastResponse().contains(":1\r\n"));
+        assertTrue(conn.getLastResponse().contains(":1\r\n"), "add succeeds");
     }
 
     /** BF.RESERVE on existing key returns error */
@@ -197,21 +197,21 @@ public class BloomFilterTest {
         bfReserve.execute(conn, tokens("BF.RESERVE", "dup", "0.01", "100"));
         conn.clear();
         bfReserve.execute(conn, tokens("BF.RESERVE", "dup", "0.01", "100"));
-        Assert.assertTrue("error on existing key", conn.getLastResponse().startsWith("-"));
+        assertTrue(conn.getLastResponse().startsWith("-"), "error on existing key");
     }
 
     /** BF.RESERVE with invalid error rate returns error */
     @Test
     public void testBfReserve_invalidErrorRate_returnsError() {
         bfReserve.execute(conn, tokens("BF.RESERVE", "bad", "1.5", "100"));
-        Assert.assertTrue("invalid rate error", conn.getLastResponse().startsWith("-"));
+        assertTrue(conn.getLastResponse().startsWith("-"), "invalid rate error");
     }
 
     /** BF.RESERVE with invalid capacity returns error */
     @Test
     public void testBfReserve_invalidCapacity_returnsError() {
         bfReserve.execute(conn, tokens("BF.RESERVE", "bad2", "0.01", "notanumber"));
-        Assert.assertTrue("invalid capacity error", conn.getLastResponse().startsWith("-"));
+        assertTrue(conn.getLastResponse().startsWith("-"), "invalid capacity error");
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────

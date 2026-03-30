@@ -5,7 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.redisjava.memory.MemoryManager;
-import com.redisjava.testutil.Assert;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for RedisObject type system.
@@ -27,13 +27,13 @@ public class RedisObjectTest {
     public void testString_typeChecks() {
         RString rs = new RString("hello".getBytes(), mem);
         RedisObject obj = RedisObject.string(rs);
-        Assert.assertTrue("isString", obj.isString());
-        Assert.assertFalse("not hash", obj.isHash());
-        Assert.assertFalse("not list", obj.isList());
-        Assert.assertFalse("not zset", obj.isZset());
-        Assert.assertFalse("not bloom", obj.isBloom());
-        Assert.assertFalse("not hll", obj.isHll());
-        Assert.assertEquals(RedisObject.Type.STRING, obj.getType());
+        assertTrue(obj.isString(), "isString");
+        assertFalse(obj.isHash(), "not hash");
+        assertFalse(obj.isList(), "not list");
+        assertFalse(obj.isZset(), "not zset");
+        assertFalse(obj.isBloom(), "not bloom");
+        assertFalse(obj.isHll(), "not hll");
+        assertEquals(RedisObject.Type.STRING, obj.getType());
     }
 
     // ── HASH ──────────────────────────────────────────────────────────────
@@ -43,10 +43,10 @@ public class RedisObjectTest {
     public void testHash_typeChecks() {
         Dict d = new Dict(mem);
         RedisObject obj = RedisObject.hash(d);
-        Assert.assertTrue("isHash", obj.isHash());
-        Assert.assertFalse("not string", obj.isString());
-        Assert.assertEquals(RedisObject.Type.HASH, obj.getType());
-        Assert.assertEquals(d, obj.asHash());
+        assertTrue(obj.isHash(), "isHash");
+        assertFalse(obj.isString(), "not string");
+        assertEquals(RedisObject.Type.HASH, obj.getType());
+        assertEquals(d, obj.asHash());
     }
 
     // ── LIST ──────────────────────────────────────────────────────────────
@@ -56,10 +56,10 @@ public class RedisObjectTest {
     public void testList_typeChecks() {
         RedisList list = new RedisList();
         RedisObject obj = RedisObject.list(list);
-        Assert.assertTrue("isList", obj.isList());
-        Assert.assertFalse("not hash", obj.isHash());
-        Assert.assertEquals(RedisObject.Type.LIST, obj.getType());
-        Assert.assertEquals(list, obj.asList());
+        assertTrue(obj.isList(), "isList");
+        assertFalse(obj.isHash(), "not hash");
+        assertEquals(RedisObject.Type.LIST, obj.getType());
+        assertEquals(list, obj.asList());
     }
 
     // ── ZSET ──────────────────────────────────────────────────────────────
@@ -69,10 +69,10 @@ public class RedisObjectTest {
     public void testZset_typeChecks() {
         SkipList sl = new SkipList();
         RedisObject obj = RedisObject.zset(sl);
-        Assert.assertTrue("isZset", obj.isZset());
-        Assert.assertFalse("not list", obj.isList());
-        Assert.assertEquals(RedisObject.Type.ZSET, obj.getType());
-        Assert.assertEquals(sl, obj.asZset());
+        assertTrue(obj.isZset(), "isZset");
+        assertFalse(obj.isList(), "not list");
+        assertEquals(RedisObject.Type.ZSET, obj.getType());
+        assertEquals(sl, obj.asZset());
     }
 
     // ── BLOOM ─────────────────────────────────────────────────────────────
@@ -82,11 +82,11 @@ public class RedisObjectTest {
     public void testBloom_typeChecks() {
         BloomFilter bf = new BloomFilter(100, 0.01);
         RedisObject obj = RedisObject.bloom(bf);
-        Assert.assertTrue("isBloom", obj.isBloom());
-        Assert.assertFalse("not string", obj.isString());
-        Assert.assertFalse("not hll", obj.isHll());
-        Assert.assertEquals(RedisObject.Type.BLOOM, obj.getType());
-        Assert.assertEquals(bf, obj.asBloom());
+        assertTrue(obj.isBloom(), "isBloom");
+        assertFalse(obj.isString(), "not string");
+        assertFalse(obj.isHll(), "not hll");
+        assertEquals(RedisObject.Type.BLOOM, obj.getType());
+        assertEquals(bf, obj.asBloom());
     }
 
     // ── HLL ───────────────────────────────────────────────────────────────
@@ -96,11 +96,11 @@ public class RedisObjectTest {
     public void testHll_typeChecks() {
         HyperLogLog hll = new HyperLogLog();
         RedisObject obj = RedisObject.hll(hll);
-        Assert.assertTrue("isHll", obj.isHll());
-        Assert.assertFalse("not bloom", obj.isBloom());
-        Assert.assertFalse("not string", obj.isString());
-        Assert.assertEquals(RedisObject.Type.HLL, obj.getType());
-        Assert.assertEquals(hll, obj.asHll());
+        assertTrue(obj.isHll(), "isHll");
+        assertFalse(obj.isBloom(), "not bloom");
+        assertFalse(obj.isString(), "not string");
+        assertEquals(RedisObject.Type.HLL, obj.getType());
+        assertEquals(hll, obj.asHll());
     }
 
     // ── Wrong-type throws ─────────────────────────────────────────────────
@@ -116,7 +116,7 @@ public class RedisObjectTest {
         } catch (IllegalStateException e) {
             threw = true;
         }
-        Assert.assertTrue("asHash on string throws", threw);
+        assertTrue(threw, "asHash on string throws");
     }
 
     /** asHll() on non-hll throws IllegalStateException */
@@ -130,7 +130,7 @@ public class RedisObjectTest {
         } catch (IllegalStateException e) {
             threw = true;
         }
-        Assert.assertTrue("asHll on bloom throws", threw);
+        assertTrue(threw, "asHll on bloom throws");
     }
 
     /** asBloom() on non-bloom throws IllegalStateException */
@@ -144,6 +144,6 @@ public class RedisObjectTest {
         } catch (IllegalStateException e) {
             threw = true;
         }
-        Assert.assertTrue("asBloom on hll throws", threw);
+        assertTrue(threw, "asBloom on hll throws");
     }
 }

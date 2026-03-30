@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import com.redisjava.datastruct.Db;
 import com.redisjava.server.ServerConfig;
-import com.redisjava.testutil.Assert;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Tests for EvictionManager and EvictionPolicy.
@@ -34,32 +34,32 @@ public class EvictionManagerTest {
     @Test
 
     public void testPolicyParse_allkeysLru() {
-        Assert.assertEquals(EvictionPolicy.ALLKEYS_LRU, EvictionPolicy.parse("allkeys-lru"));
+        assertEquals(EvictionPolicy.ALLKEYS_LRU, EvictionPolicy.parse("allkeys-lru"));
     }
     @Test
 
     public void testPolicyParse_volatileLru() {
-        Assert.assertEquals(EvictionPolicy.VOLATILE_LRU, EvictionPolicy.parse("volatile-lru"));
+        assertEquals(EvictionPolicy.VOLATILE_LRU, EvictionPolicy.parse("volatile-lru"));
     }
     @Test
 
     public void testPolicyParse_noEviction_default() {
-        Assert.assertEquals(EvictionPolicy.NO_EVICTION, EvictionPolicy.parse("noeviction"));
+        assertEquals(EvictionPolicy.NO_EVICTION, EvictionPolicy.parse("noeviction"));
     }
     @Test
 
     public void testPolicyParse_unknown_defaultsToNoEviction() {
-        Assert.assertEquals(EvictionPolicy.NO_EVICTION, EvictionPolicy.parse("foobar"));
+        assertEquals(EvictionPolicy.NO_EVICTION, EvictionPolicy.parse("foobar"));
     }
     @Test
 
     public void testPolicyParse_null() {
-        Assert.assertEquals(EvictionPolicy.NO_EVICTION, EvictionPolicy.parse(null));
+        assertEquals(EvictionPolicy.NO_EVICTION, EvictionPolicy.parse(null));
     }
     @Test
 
     public void testPolicyParse_caseInsensitive() {
-        Assert.assertEquals(EvictionPolicy.ALLKEYS_LRU, EvictionPolicy.parse("ALLKEYS-LRU"));
+        assertEquals(EvictionPolicy.ALLKEYS_LRU, EvictionPolicy.parse("ALLKEYS-LRU"));
     }
 
     // ── Singleton lifecycle ───────────────────────────────────────────────
@@ -67,7 +67,7 @@ public class EvictionManagerTest {
 
     public void testInit_createsInstance() {
         EvictionManager.init(memoryManager, EvictionPolicy.ALLKEYS_LRU);
-        Assert.assertNotNull(EvictionManager.getInstance());
+        assertNotNull(EvictionManager.getInstance());
     }
     @Test
 
@@ -78,14 +78,14 @@ public class EvictionManagerTest {
         EvictionManager.init(memoryManager, EvictionPolicy.NO_EVICTION);
         EvictionManager second = EvictionManager.getInstance();
 
-        Assert.assertTrue("Re-init should produce a new instance", first != second);
-        Assert.assertEquals(EvictionPolicy.NO_EVICTION, second.getPolicy());
+        assertTrue(first != second, "Re-init should produce a new instance");
+        assertEquals(EvictionPolicy.NO_EVICTION, second.getPolicy());
     }
     @Test
 
     public void testGetPolicy_returnsConfiguredPolicy() {
         EvictionManager.init(memoryManager, EvictionPolicy.VOLATILE_LRU);
-        Assert.assertEquals(EvictionPolicy.VOLATILE_LRU, EvictionManager.getInstance().getPolicy());
+        assertEquals(EvictionPolicy.VOLATILE_LRU, EvictionManager.getInstance().getPolicy());
     }
 
     // ── ensureMemory() under normal conditions ────────────────────────────
@@ -97,7 +97,7 @@ public class EvictionManagerTest {
         Db.init(memoryManager);
 
         boolean result = EvictionManager.getInstance().ensureMemory();
-        Assert.assertTrue("Should return true when memory is below threshold", result);
+        assertTrue(result, "Should return true when memory is below threshold");
     }
     @Test
 
@@ -106,7 +106,7 @@ public class EvictionManagerTest {
         Db.init(memoryManager);
 
         boolean result = EvictionManager.getInstance().ensureMemory();
-        Assert.assertTrue("NO_EVICTION below threshold should still return true", result);
+        assertTrue(result, "NO_EVICTION below threshold should still return true");
     }
 
     // ── ServerConfig integration ──────────────────────────────────────────
@@ -114,29 +114,29 @@ public class EvictionManagerTest {
 
     public void testServerConfig_defaults() {
         ServerConfig config = new ServerConfig();
-        Assert.assertEquals(EvictionPolicy.ALLKEYS_LRU, config.getEvictionPolicy());
-        Assert.assertEquals(ServerConfig.DEFAULT_MAX_MEMORY, config.getMaxMemory());
-        Assert.assertEquals(ServerConfig.DEFAULT_PORT, config.getPort());
+        assertEquals(EvictionPolicy.ALLKEYS_LRU, config.getEvictionPolicy());
+        assertEquals(ServerConfig.DEFAULT_MAX_MEMORY, config.getMaxMemory());
+        assertEquals(ServerConfig.DEFAULT_PORT, config.getPort());
     }
     @Test
 
     public void testServerConfig_parseMaxmemoryPolicy() {
         ServerConfig config = new ServerConfig();
         config.parseArgs(new String[]{"--maxmemory-policy", "volatile-lru"});
-        Assert.assertEquals(EvictionPolicy.VOLATILE_LRU, config.getEvictionPolicy());
+        assertEquals(EvictionPolicy.VOLATILE_LRU, config.getEvictionPolicy());
     }
     @Test
 
     public void testServerConfig_parseMaxmemory_mb() {
         ServerConfig config = new ServerConfig();
         config.parseArgs(new String[]{"--maxmemory", "128m"});
-        Assert.assertEquals(128L * 1024 * 1024, config.getMaxMemory());
+        assertEquals(128L * 1024 * 1024, config.getMaxMemory());
     }
     @Test
 
     public void testServerConfig_parseMaxmemory_gb() {
         ServerConfig config = new ServerConfig();
         config.parseArgs(new String[]{"--maxmemory", "1g"});
-        Assert.assertEquals(1L * 1024 * 1024 * 1024, config.getMaxMemory());
+        assertEquals(1L * 1024 * 1024 * 1024, config.getMaxMemory());
     }
 }

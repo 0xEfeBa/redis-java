@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 
-import com.redisjava.testutil.Assert;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for CommandRegistry.lookup().
@@ -28,15 +28,15 @@ public class CommandRegistryTest {
     }
 
     private void assertResolved(String cmd) {
-        Assert.assertNotNull(lookup(cmd));
+        assertNotNull(lookup(cmd));
     }
 
     private void assertResolvedCI(String cmd) {
         // case-insensitive — try uppercase and lowercase
         byte[] upper = cmd.toUpperCase().getBytes();
         byte[] lower = cmd.toLowerCase().getBytes();
-        Assert.assertNotNull(registry.lookup(upper, 0, upper.length));
-        Assert.assertNotNull(registry.lookup(lower, 0, lower.length));
+        assertNotNull(registry.lookup(upper, 0, upper.length));
+        assertNotNull(registry.lookup(lower, 0, lower.length));
     }
 
     // ── PING / ECHO / INFO ────────────────────────────────────────────────
@@ -174,20 +174,20 @@ public class CommandRegistryTest {
     /** Unknown command returns null */
     @Test
     public void testLookup_unknown_returnsNull() {
-        Assert.assertNull(lookup("NOTACOMMAND"));
+        assertNull(lookup("NOTACOMMAND"));
     }
 
     /** Empty command returns null */
     @Test
     public void testLookup_empty_returnsNull() {
         byte[] empty = new byte[0];
-        Assert.assertNull(registry.lookup(empty, 0, 0));
+        assertNull(registry.lookup(empty, 0, 0));
     }
 
     /** Partial command name returns null */
     @Test
     public void testLookup_partial_returnsNull() {
-        Assert.assertNull(lookup("GE"));
-        Assert.assertNull(lookup("SE"));
+        assertNull(lookup("GE"));
+        assertNull(lookup("SE"));
     }
 }

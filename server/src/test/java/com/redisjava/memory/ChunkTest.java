@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 
-import com.redisjava.testutil.Assert;
+import static org.junit.jupiter.api.Assertions.*;
 import com.redisjava.util.MemoryConstants;
 
 /**
@@ -29,10 +29,10 @@ public class ChunkTest {
 
     public void testInitialization_allSlotsFree() {
         int expectedSlots = (MemoryConstants.CHUNK_SIZE - MemoryConstants.CHUNK_HEADER_SIZE) / SLOT_SIZE;
-        Assert.assertEquals(expectedSlots, chunk.getFreeCount());
-        Assert.assertEquals(SLOT_SIZE, chunk.getSlotSize());
-        Assert.assertTrue("başlangıçta boş", chunk.isEmpty());
-        Assert.assertFalse("başlangıçta dolu değil", chunk.isFull());
+        assertEquals(expectedSlots, chunk.getFreeCount());
+        assertEquals(SLOT_SIZE, chunk.getSlotSize());
+        assertTrue(chunk.isEmpty(), "başlangıçta boş");
+        assertFalse(chunk.isFull(), "başlangıçta dolu değil");
     }
 
     // ── alloc / free ─────────────────────────────────────────────────────
@@ -42,18 +42,18 @@ public class ChunkTest {
         long addr1 = chunk.alloc();
         long addr2 = chunk.alloc();
 
-        Assert.assertTrue("addr1 geçerli", addr1 != -1);
-        Assert.assertTrue("addr2 geçerli", addr2 != -1);
-        Assert.assertTrue("farklı adresler", addr1 != addr2);
+        assertTrue(addr1 != -1, "addr1 geçerli");
+        assertTrue(addr2 != -1, "addr2 geçerli");
+        assertTrue(addr1 != addr2, "farklı adresler");
 
         // Adresler SLOT_SIZE'a hizalı mı?
         long base = chunk.getBaseAddress() + MemoryConstants.CHUNK_HEADER_SIZE;
-        Assert.assertEquals(0L, (addr1 - base) % SLOT_SIZE);
-        Assert.assertEquals(0L, (addr2 - base) % SLOT_SIZE);
+        assertEquals(0L, (addr1 - base) % SLOT_SIZE);
+        assertEquals(0L, (addr2 - base) % SLOT_SIZE);
 
-        Assert.assertTrue("free addr1", chunk.free(addr1));
-        Assert.assertTrue("free addr2", chunk.free(addr2));
-        Assert.assertTrue("free sonrası boş", chunk.isEmpty());
+        assertTrue(chunk.free(addr1), "free addr1");
+        assertTrue(chunk.free(addr2), "free addr2");
+        assertTrue(chunk.isEmpty(), "free sonrası boş");
     }
 
     // ── Double-free koruması ─────────────────────────────────────────────
@@ -68,17 +68,17 @@ public class ChunkTest {
             chunk.free(addr);
         } catch (IllegalStateException e) {
             threw = true;
-            Assert.assertTrue("Double-free mesajı", e.getMessage().contains("Double-free"));
+            assertTrue(e.getMessage().contains("Double-free"), "Double-free mesajı");
         }
-        Assert.assertTrue("double-free exception fırlattı", threw);
+        assertTrue(threw, "double-free exception fırlattı");
     }
 
     // ── Geçersiz adres ───────────────────────────────────────────────────
     @Test
 
     public void testFree_invalidAddress_returnsFalse() {
-        Assert.assertFalse("0 adresi geçersiz", chunk.free(0));
-        Assert.assertFalse("bound dışı geçersiz", chunk.free(chunk.getBaseAddress() - 100));
+        assertFalse(chunk.free(0), "0 adresi geçersiz");
+        assertFalse(chunk.free(chunk.getBaseAddress() - 100), "bound dışı geçersiz");
     }
 
     // ── Next / Prev bağlantı listesi ─────────────────────────────────────
@@ -89,8 +89,8 @@ public class ChunkTest {
         try {
             chunk.setNext(c2);
             c2.setPrev(chunk);
-            Assert.assertEquals(c2,    chunk.getNext());
-            Assert.assertEquals(chunk, c2.getPrev());
+            assertEquals(c2,    chunk.getNext());
+            assertEquals(chunk, c2.getPrev());
         } finally {
             c2.destroy();
         }

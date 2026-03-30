@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 
-import com.redisjava.testutil.Assert;
+import static org.junit.jupiter.api.Assertions.*;
 import com.redisjava.command.PfAddCommand;
 import com.redisjava.command.PfCountCommand;
 import com.redisjava.command.PfMergeCommand;
@@ -38,7 +38,7 @@ public class HyperLogLogTest {
     @Test
     public void testHll_emptyCount() {
         HyperLogLog hll = new HyperLogLog();
-        Assert.assertEquals(0L, hll.count());
+        assertEquals(0L, hll.count());
     }
 
     /** Single element → count ≈ 1 */
@@ -46,7 +46,7 @@ public class HyperLogLogTest {
     public void testHll_singleElement() {
         HyperLogLog hll = new HyperLogLog();
         hll.add("only".getBytes());
-        Assert.assertTrue("count ≈ 1", hll.count() >= 1 && hll.count() <= 2);
+        assertTrue(hll.count() >= 1 && hll.count() <= 2, "count ≈ 1");
     }
 
     /** Distinct elements counted within 5% accuracy */
@@ -58,8 +58,8 @@ public class HyperLogLogTest {
         }
         long estimate = hll.count();
         // Allow 5% error
-        Assert.assertTrue("estimate >= 950", estimate >= 950);
-        Assert.assertTrue("estimate <= 1050", estimate <= 1050);
+        assertTrue(estimate >= 950, "estimate >= 950");
+        assertTrue(estimate <= 1050, "estimate <= 1050");
     }
 
     /** Duplicate elements don't inflate count */
@@ -71,8 +71,8 @@ public class HyperLogLogTest {
         }
         long estimate = hll.count();
         // Should estimate ≈ 1, allow small margin
-        Assert.assertTrue("estimate <= 5", estimate <= 5);
-        Assert.assertTrue("estimate >= 1", estimate >= 1);
+        assertTrue(estimate <= 5, "estimate <= 5");
+        assertTrue(estimate >= 1, "estimate >= 1");
     }
 
     /** Merge of two HLLs covers all distinct elements */
@@ -89,8 +89,8 @@ public class HyperLogLogTest {
         a.merge(b);
         long estimate = a.count();
         // Union of 1000 distinct elements
-        Assert.assertTrue("merged estimate >= 900", estimate >= 900);
-        Assert.assertTrue("merged estimate <= 1100", estimate <= 1100);
+        assertTrue(estimate >= 900, "merged estimate >= 900");
+        assertTrue(estimate <= 1100, "merged estimate <= 1100");
     }
 
     /** add() returns true when cardinality changes */
@@ -101,7 +101,7 @@ public class HyperLogLogTest {
         hll.add("unique-abc123".getBytes());
         // Adding the same element again may not change registers (might return false)
         // We don't assert strict behaviour but register count is non-decreasing
-        Assert.assertTrue("count >= 1", hll.count() >= 1);
+        assertTrue(hll.count() >= 1, "count >= 1");
     }
 
     /** copy() produces an independent copy */
@@ -116,7 +116,7 @@ public class HyperLogLogTest {
             copy.add(("extra-" + i).getBytes());
         }
         // Original still has 1 element estimate
-        Assert.assertTrue("original count unaffected", original.count() <= 5);
+        assertTrue(original.count() <= 5, "original count unaffected");
     }
 
     // ── PFADD ─────────────────────────────────────────────────────────────
@@ -125,7 +125,7 @@ public class HyperLogLogTest {
     @Test
     public void testPfAdd_newKey_returns1() {
         pfAdd.execute(conn, tokens("PFADD", "hll1", "a"));
-        Assert.assertTrue("returns :1", conn.getLastResponse().contains(":1\r\n"));
+        assertTrue(conn.getLastResponse().contains(":1\r\n"), "returns :1");
     }
 
     /** PFADD same element twice → second returns :0 (unchanged) */
@@ -134,7 +134,7 @@ public class HyperLogLogTest {
         pfAdd.execute(conn, tokens("PFADD", "hll2", "dup"));
         conn.clear();
         pfAdd.execute(conn, tokens("PFADD", "hll2", "dup"));
-        Assert.assertTrue("duplicate returns :0", conn.getLastResponse().contains(":0\r\n"));
+        assertTrue(conn.getLastResponse().contains(":0\r\n"), "duplicate returns :0");
     }
 
     /** PFADD multiple elements in one call */
@@ -142,14 +142,14 @@ public class HyperLogLogTest {
     public void testPfAdd_multipleElements() {
         pfAdd.execute(conn, tokens("PFADD", "hll3", "x", "y", "z"));
         // Three new elements → cardinality changed
-        Assert.assertTrue("multiple adds returns :1", conn.getLastResponse().contains(":1\r\n"));
+        assertTrue(conn.getLastResponse().contains(":1\r\n"), "multiple adds returns :1");
     }
 
     /** PFADD too few args returns error */
     @Test
     public void testPfAdd_tooFewArgs_returnsError() {
         pfAdd.execute(conn, tokens("PFADD", "only-key"));
-        Assert.assertTrue("error", conn.getLastResponse().startsWith("-"));
+        assertTrue(conn.getLastResponse().startsWith("-"), "error");
     }
 
     // ── PFCOUNT ──────────────────────────────────────────────────────────
@@ -158,7 +158,7 @@ public class HyperLogLogTest {
     @Test
     public void testPfCount_missingKey_returns0() {
         pfCount.execute(conn, tokens("PFCOUNT", "no-such-hll"));
-        Assert.assertTrue("missing key :0", conn.getLastResponse().contains(":0\r\n"));
+        assertTrue(conn.getLastResponse().contains(":0\r\n"), "missing key :0");
     }
 
     /** PFCOUNT after adding 10 elements estimates ≈ 10 */
@@ -174,8 +174,8 @@ public class HyperLogLogTest {
         int colon = resp.indexOf(':');
         int cr    = resp.indexOf('\r');
         long estimate = Long.parseLong(resp.substring(colon + 1, cr));
-        Assert.assertTrue("estimate >= 8", estimate >= 8);
-        Assert.assertTrue("estimate <= 12", estimate <= 12);
+        assertTrue(estimate >= 8, "estimate >= 8");
+        assertTrue(estimate <= 12, "estimate <= 12");
     }
 
     /** PFCOUNT multi-key returns union */
@@ -191,8 +191,8 @@ public class HyperLogLogTest {
         int cr    = resp.indexOf('\r');
         long estimate = Long.parseLong(resp.substring(colon + 1, cr));
         // 6 distinct elements
-        Assert.assertTrue("union estimate >= 4", estimate >= 4);
-        Assert.assertTrue("union estimate <= 8", estimate <= 8);
+        assertTrue(estimate >= 4, "union estimate >= 4");
+        assertTrue(estimate <= 8, "union estimate <= 8");
     }
 
     // ── PFMERGE ──────────────────────────────────────────────────────────
@@ -206,7 +206,7 @@ public class HyperLogLogTest {
         conn.clear();
 
         pfMerge.execute(conn, tokens("PFMERGE", "dest", "src1", "src2"));
-        Assert.assertTrue("merge returns OK", conn.getLastResponse().contains("+OK"));
+        assertTrue(conn.getLastResponse().contains("+OK"), "merge returns OK");
 
         // Count of dest should cover all 4 elements
         conn.clear();
@@ -215,7 +215,7 @@ public class HyperLogLogTest {
         int colon = resp.indexOf(':');
         int cr    = resp.indexOf('\r');
         long estimate = Long.parseLong(resp.substring(colon + 1, cr));
-        Assert.assertTrue("dest estimate >= 2", estimate >= 2);
+        assertTrue(estimate >= 2, "dest estimate >= 2");
     }
 
     /** PFMERGE with missing source key (treated as empty) */
@@ -225,14 +225,14 @@ public class HyperLogLogTest {
         conn.clear();
 
         pfMerge.execute(conn, tokens("PFMERGE", "merged-dest", "real-src", "ghost-key"));
-        Assert.assertTrue("merge OK with ghost key", conn.getLastResponse().contains("+OK"));
+        assertTrue(conn.getLastResponse().contains("+OK"), "merge OK with ghost key");
     }
 
     /** PFMERGE too few args returns error */
     @Test
     public void testPfMerge_tooFewArgs_returnsError() {
         pfMerge.execute(conn, tokens("PFMERGE", "dest-only"));
-        Assert.assertTrue("error on too few args", conn.getLastResponse().startsWith("-"));
+        assertTrue(conn.getLastResponse().startsWith("-"), "error on too few args");
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────

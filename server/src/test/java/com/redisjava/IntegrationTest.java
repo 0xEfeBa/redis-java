@@ -8,7 +8,7 @@ import com.redisjava.command.MockConnection;
 import com.redisjava.datastruct.Db;
 import com.redisjava.memory.MemoryManager;
 import com.redisjava.protocol.RedisProtocolHandler;
-import com.redisjava.testutil.Assert;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.ByteBuffer;
 
@@ -51,16 +51,16 @@ public class IntegrationTest {
     @Test
     public void testIntegration_listPipeline() {
         String resp = send("LPUSH", "mylist", "a");
-        Assert.assertTrue("LPUSH returns :1", resp.contains(":1\r\n"));
+        assertTrue(resp.contains(":1\r\n"), "LPUSH returns :1");
 
         send("LPUSH", "mylist", "b");
         send("LPUSH", "mylist", "c");
 
         resp = send("LRANGE", "mylist", "0", "-1");
-        Assert.assertNotNull(resp);
-        Assert.assertTrue("LRANGE returns array", resp.startsWith("*"));
-        Assert.assertTrue("contains c", resp.contains("c"));
-        Assert.assertTrue("contains a", resp.contains("a"));
+        assertNotNull(resp);
+        assertTrue(resp.startsWith("*"), "LRANGE returns array");
+        assertTrue(resp.contains("c"), "contains c");
+        assertTrue(resp.contains("a"), "contains a");
     }
 
     /** RPUSH + LPOP */
@@ -70,10 +70,10 @@ public class IntegrationTest {
         send("RPUSH", "q", "second");
 
         String resp = send("LPOP", "q");
-        Assert.assertTrue("LPOP returns first", resp.contains("first"));
+        assertTrue(resp.contains("first"), "LPOP returns first");
 
         resp = send("LLEN", "q");
-        Assert.assertTrue("LLEN returns 1", resp.contains(":1\r\n"));
+        assertTrue(resp.contains(":1\r\n"), "LLEN returns 1");
     }
 
     // ── ZSET integration ───────────────────────────────────────────────────
@@ -86,13 +86,13 @@ public class IntegrationTest {
         send("ZADD", "scores", "15", "carol");
 
         String resp = send("ZRANK", "scores", "alice");
-        Assert.assertTrue("alice rank is 0", resp.contains(":0\r\n"));
+        assertTrue(resp.contains(":0\r\n"), "alice rank is 0");
 
         resp = send("ZSCORE", "scores", "bob");
-        Assert.assertTrue("bob score is 20", resp.contains("20"));
+        assertTrue(resp.contains("20"), "bob score is 20");
 
         resp = send("ZCARD", "scores");
-        Assert.assertTrue("zcard is 3", resp.contains(":3\r\n"));
+        assertTrue(resp.contains(":3\r\n"), "zcard is 3");
     }
 
     /** ZRANGE returns members in order */
@@ -103,11 +103,11 @@ public class IntegrationTest {
         send("ZADD", "zr", "3", "three");
 
         String resp = send("ZRANGE", "zr", "0", "-1");
-        Assert.assertTrue("zrange starts with *", resp.startsWith("*"));
-        Assert.assertTrue("contains one", resp.contains("one"));
-        Assert.assertTrue("contains three", resp.contains("three"));
+        assertTrue(resp.startsWith("*"), "zrange starts with *");
+        assertTrue(resp.contains("one"), "contains one");
+        assertTrue(resp.contains("three"), "contains three");
         // one should appear before three
-        Assert.assertTrue("one before three", resp.indexOf("one") < resp.indexOf("three"));
+        assertTrue(resp.indexOf("one") < resp.indexOf("three"), "one before three");
     }
 
     // ── Bloom Filter integration ────────────────────────────────────────────
@@ -116,23 +116,23 @@ public class IntegrationTest {
     @Test
     public void testIntegration_bloomPipeline() {
         String resp = send("BF.ADD", "bf1", "member1");
-        Assert.assertTrue("BF.ADD returns :1", resp.contains(":1\r\n"));
+        assertTrue(resp.contains(":1\r\n"), "BF.ADD returns :1");
 
         resp = send("BF.EXISTS", "bf1", "member1");
-        Assert.assertTrue("BF.EXISTS returns :1", resp.contains(":1\r\n"));
+        assertTrue(resp.contains(":1\r\n"), "BF.EXISTS returns :1");
 
         resp = send("BF.EXISTS", "bf1", "not-added-99999");
-        Assert.assertTrue("BF.EXISTS missing returns :0", resp.contains(":0\r\n"));
+        assertTrue(resp.contains(":0\r\n"), "BF.EXISTS missing returns :0");
     }
 
     /** BF.RESERVE then BF.ADD */
     @Test
     public void testIntegration_bloom_reserve() {
         String resp = send("BF.RESERVE", "bigbf", "0.001", "50000");
-        Assert.assertTrue("BF.RESERVE returns +OK", resp.contains("+OK"));
+        assertTrue(resp.contains("+OK"), "BF.RESERVE returns +OK");
 
         resp = send("BF.ADD", "bigbf", "hello");
-        Assert.assertTrue("BF.ADD after reserve returns :1", resp.contains(":1\r\n"));
+        assertTrue(resp.contains(":1\r\n"), "BF.ADD after reserve returns :1");
     }
 
     // ── HyperLogLog integration ─────────────────────────────────────────────
@@ -142,9 +142,9 @@ public class IntegrationTest {
     public void testIntegration_hllPipeline() {
         send("PFADD", "hll1", "a", "b", "c");
         String resp = send("PFCOUNT", "hll1");
-        Assert.assertTrue("PFCOUNT returns integer", resp.startsWith(":"));
+        assertTrue(resp.startsWith(":"), "PFCOUNT returns integer");
         long count = Long.parseLong(resp.substring(1, resp.indexOf("\r\n")));
-        Assert.assertTrue("cardinality ~3", count >= 2 && count <= 5);
+        assertTrue(count >= 2 && count <= 5, "cardinality ~3");
     }
 
     /** PFMERGE union */
@@ -153,12 +153,12 @@ public class IntegrationTest {
         send("PFADD", "hA", "x", "y", "z");
         send("PFADD", "hB", "a", "b", "c");
         String resp = send("PFMERGE", "hDest", "hA", "hB");
-        Assert.assertTrue("PFMERGE returns +OK", resp.contains("+OK"));
+        assertTrue(resp.contains("+OK"), "PFMERGE returns +OK");
 
         resp = send("PFCOUNT", "hDest");
-        Assert.assertTrue("merged count is integer", resp.startsWith(":"));
+        assertTrue(resp.startsWith(":"), "merged count is integer");
         long count = Long.parseLong(resp.substring(1, resp.indexOf("\r\n")));
-        Assert.assertTrue("merged cardinality >=4", count >= 4);
+        assertTrue(count >= 4, "merged cardinality >=4");
     }
 
     // ── Hash integration ────────────────────────────────────────────────────
@@ -170,15 +170,15 @@ public class IntegrationTest {
         send("HSET", "user:1", "age", "30");
 
         String resp = send("HGET", "user:1", "name");
-        Assert.assertTrue("HGET name returns Alice", resp.contains("Alice"));
+        assertTrue(resp.contains("Alice"), "HGET name returns Alice");
 
         resp = send("HLEN", "user:1");
-        Assert.assertTrue("HLEN returns 2", resp.contains(":2\r\n"));
+        assertTrue(resp.contains(":2\r\n"), "HLEN returns 2");
 
         resp = send("HGETALL", "user:1");
-        Assert.assertTrue("HGETALL returns array", resp.startsWith("*"));
-        Assert.assertTrue("contains name", resp.contains("name"));
-        Assert.assertTrue("contains Alice", resp.contains("Alice"));
+        assertTrue(resp.startsWith("*"), "HGETALL returns array");
+        assertTrue(resp.contains("name"), "contains name");
+        assertTrue(resp.contains("Alice"), "contains Alice");
     }
 
     // ── Counter integration ─────────────────────────────────────────────────
@@ -187,16 +187,16 @@ public class IntegrationTest {
     @Test
     public void testIntegration_counterPipeline() {
         String resp = send("INCR", "ctr");
-        Assert.assertTrue("INCR returns :1", resp.contains(":1\r\n"));
+        assertTrue(resp.contains(":1\r\n"), "INCR returns :1");
 
         resp = send("INCRBY", "ctr", "9");
-        Assert.assertTrue("INCRBY returns :10", resp.contains(":10\r\n"));
+        assertTrue(resp.contains(":10\r\n"), "INCRBY returns :10");
 
         resp = send("DECR", "ctr");
-        Assert.assertTrue("DECR returns :9", resp.contains(":9\r\n"));
+        assertTrue(resp.contains(":9\r\n"), "DECR returns :9");
 
         resp = send("DECRBY", "ctr", "4");
-        Assert.assertTrue("DECRBY returns :5", resp.contains(":5\r\n"));
+        assertTrue(resp.contains(":5\r\n"), "DECRBY returns :5");
     }
 
     // ── TTL integration ─────────────────────────────────────────────────────
@@ -206,13 +206,13 @@ public class IntegrationTest {
     public void testIntegration_ttlPipeline() {
         // SET with EX
         String resp = send("SET", "tmp", "val", "EX", "100");
-        Assert.assertTrue("SET EX returns +OK", resp.contains("+OK"));
+        assertTrue(resp.contains("+OK"), "SET EX returns +OK");
 
         resp = send("TTL", "tmp");
-        Assert.assertTrue("TTL returns positive", resp.startsWith(":"));
+        assertTrue(resp.startsWith(":"), "TTL returns positive");
         long ttl = Long.parseLong(resp.substring(1, resp.indexOf("\r\n")));
-        Assert.assertTrue("TTL > 0", ttl > 0);
-        Assert.assertTrue("TTL <= 100", ttl <= 100);
+        assertTrue(ttl > 0, "TTL > 0");
+        assertTrue(ttl <= 100, "TTL <= 100");
     }
 
     /** EXPIRE + PERSIST */
@@ -223,12 +223,12 @@ public class IntegrationTest {
 
         String resp = send("TTL", "pk");
         long ttl = Long.parseLong(resp.substring(1, resp.indexOf("\r\n")));
-        Assert.assertTrue("TTL > 0 after EXPIRE", ttl > 0);
+        assertTrue(ttl > 0, "TTL > 0 after EXPIRE");
 
         send("PERSIST", "pk");
         resp = send("TTL", "pk");
         long ttlAfter = Long.parseLong(resp.substring(1, resp.indexOf("\r\n")));
-        Assert.assertTrue("TTL is -1 after PERSIST", ttlAfter == -1);
+        assertTrue(ttlAfter == -1, "TTL is -1 after PERSIST");
     }
 
     // ── DEL / EXISTS integration ────────────────────────────────────────────
@@ -240,13 +240,13 @@ public class IntegrationTest {
         send("SET", "d2", "v");
 
         String resp = send("EXISTS", "d1", "d2", "ghost");
-        Assert.assertTrue("EXISTS returns :2", resp.contains(":2\r\n"));
+        assertTrue(resp.contains(":2\r\n"), "EXISTS returns :2");
 
         resp = send("DEL", "d1", "d2");
-        Assert.assertTrue("DEL returns :2", resp.contains(":2\r\n"));
+        assertTrue(resp.contains(":2\r\n"), "DEL returns :2");
 
         resp = send("EXISTS", "d1");
-        Assert.assertTrue("EXISTS after DEL returns :0", resp.contains(":0\r\n"));
+        assertTrue(resp.contains(":0\r\n"), "EXISTS after DEL returns :0");
     }
 
     // ── FLUSHALL integration ────────────────────────────────────────────────
@@ -258,10 +258,10 @@ public class IntegrationTest {
         send("SET", "b", "2");
 
         String resp = send("FLUSHALL");
-        Assert.assertTrue("FLUSHALL returns +OK", resp.contains("+OK"));
+        assertTrue(resp.contains("+OK"), "FLUSHALL returns +OK");
 
         resp = send("EXISTS", "a");
-        Assert.assertTrue("EXISTS after FLUSHALL returns :0", resp.contains(":0\r\n"));
+        assertTrue(resp.contains(":0\r\n"), "EXISTS after FLUSHALL returns :0");
     }
 
     // ── WRONGTYPE error integration ─────────────────────────────────────────
@@ -271,7 +271,7 @@ public class IntegrationTest {
     public void testIntegration_wrongType_error() {
         send("LPUSH", "lst", "item");
         String resp = send("GET", "lst");
-        Assert.assertTrue("GET on list returns WRONGTYPE", resp.startsWith("-WRONGTYPE"));
+        assertTrue(resp.startsWith("-WRONGTYPE"), "GET on list returns WRONGTYPE");
     }
 
     // ── Unknown command ─────────────────────────────────────────────────────
@@ -280,7 +280,7 @@ public class IntegrationTest {
     @Test
     public void testIntegration_unknownCommand() {
         String resp = send("UNKNOWNCMD", "arg");
-        Assert.assertTrue("Unknown command returns error", resp.startsWith("-"));
+        assertTrue(resp.startsWith("-"), "Unknown command returns error");
     }
 
     // ── TICKET.BUY integration ──────────────────────────────────────────────
@@ -292,8 +292,8 @@ public class IntegrationTest {
         send("SET", "tickets:concert", "10");
         String resp = send("TICKET.BUY", "concert", "1");
         // Should return remaining count or error if inventory key format differs
-        Assert.assertNotNull(resp);
+        assertNotNull(resp);
         // Ticket buy either succeeds (:N) or returns an error
-        Assert.assertTrue("TICKET.BUY response is non-empty", resp.length() > 0);
+        assertTrue(resp.length() > 0, "TICKET.BUY response is non-empty");
     }
 }

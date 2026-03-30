@@ -8,7 +8,7 @@ import com.redisjava.command.MockConnection;
 import com.redisjava.datastruct.Db;
 import com.redisjava.memory.MemoryManager;
 import com.redisjava.protocol.RedisProtocolHandler;
-import com.redisjava.testutil.Assert;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.ByteBuffer;
 
@@ -34,7 +34,7 @@ public class PipeliningTest {
         byte[] ping = "*1\r\n$4\r\nPING\r\n".getBytes();
         ByteBuffer buf = ByteBuffer.wrap(ping);
         handler.handle(conn, buf);
-        Assert.assertEquals("+PONG\r\n", conn.getLastResponse());
+        assertEquals("+PONG\r\n", conn.getLastResponse());
     }
 
     /** 3 PING pipeline — tümü yanıt almalı */
@@ -47,7 +47,7 @@ public class PipeliningTest {
         handler.handle(conn, buf);
 
         String resp = conn.getLastResponse();
-        Assert.assertNotNull(resp);
+        assertNotNull(resp);
         // 3 PONG yanıtı olmalı
         int count = 0;
         int idx = 0;
@@ -55,7 +55,7 @@ public class PipeliningTest {
             count++;
             idx += "+PONG\r\n".length();
         }
-        Assert.assertEquals(3, count);
+        assertEquals(3, count);
     }
 
     /** SET + GET pipeline — sıralı yanıtlar doğru */
@@ -68,9 +68,9 @@ public class PipeliningTest {
         handler.handle(conn, buf);
 
         String resp = conn.getLastResponse();
-        Assert.assertNotNull(resp);
-        Assert.assertTrue("SET sonucu +OK içermeli", resp.contains("+OK\r\n"));
-        Assert.assertTrue("GET sonucu bar içermeli", resp.contains("$3\r\nbar\r\n"));
+        assertNotNull(resp);
+        assertTrue(resp.contains("+OK\r\n"), "SET sonucu +OK içermeli");
+        assertTrue(resp.contains("$3\r\nbar\r\n"), "GET sonucu bar içermeli");
     }
 
     /** 10 SET pipeline — tümü OK */
@@ -91,7 +91,7 @@ public class PipeliningTest {
             okCount++;
             idx += "+OK\r\n".length();
         }
-        Assert.assertEquals(10, okCount);
+        assertEquals(10, okCount);
     }
 
     /** Yarım komut (partial buffer) — sonraki buffer'da tamamlanmalı */
@@ -105,13 +105,12 @@ public class PipeliningTest {
         handler.handle(conn, buf1);
         // Henüz yanıt gelmemeli
         String resp1 = conn.getLastResponse();
-        Assert.assertTrue("Partial — yanıt yok veya boş",
-                resp1 == null || resp1.isEmpty());
+        assertTrue(resp1 == null || resp1.isEmpty(), "Partial — yanıt yok veya boş");
 
         conn.clear();
         ByteBuffer buf2 = ByteBuffer.wrap(part2);
         handler.handle(conn, buf2);
-        Assert.assertEquals("+PONG\r\n", conn.getLastResponse());
+        assertEquals("+PONG\r\n", conn.getLastResponse());
     }
 
     /** Hatalı komut pipeline içinde — hata sonraki komutları etkilememeli */
@@ -125,7 +124,7 @@ public class PipeliningTest {
         handler.handle(conn, buf);
 
         String resp = conn.getLastResponse();
-        Assert.assertTrue("PONG içermeli", resp.contains("+PONG\r\n"));
-        Assert.assertTrue("ERR içermeli", resp.contains("-ERR"));
+        assertTrue(resp.contains("+PONG\r\n"), "PONG içermeli");
+        assertTrue(resp.contains("-ERR"), "ERR içermeli");
     }
 }

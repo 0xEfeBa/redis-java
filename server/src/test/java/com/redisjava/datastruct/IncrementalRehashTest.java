@@ -5,7 +5,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.redisjava.memory.MemoryManager;
-import com.redisjava.testutil.Assert;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Incremental rehashing doğrulaması.
@@ -33,7 +33,7 @@ public class IncrementalRehashTest {
         dict.put("trigger".getBytes(), RedisObject.string(
                 new RString("x".getBytes(), dict.getMemoryManager())));
 
-        Assert.assertTrue("Rehash başlamalı", dict.isRehashing());
+        assertTrue(dict.isRehashing(), "Rehash başlamalı");
     }
 
     /** Rehash sırasında tüm key'ler erişilebilir olmalı */
@@ -49,9 +49,9 @@ public class IncrementalRehashTest {
         for (int i = 0; i < count; i++) {
             byte[] k = ("rkey" + i).getBytes();
             RedisObject val = dict.get(k);
-            Assert.assertNotNull(val);
+            assertNotNull(val);
             RString str = (RString) val.getValue();
-            Assert.assertEquals("rv" + i, new String(str.getBytes()));
+            assertEquals("rv" + i, new String(str.getBytes()));
         }
     }
 
@@ -69,12 +69,12 @@ public class IncrementalRehashTest {
             dict.get(("bigkey" + i).getBytes());
         }
         // Artık rehash bitmeli
-        Assert.assertFalse("Rehash bitmeli", dict.isRehashing());
+        assertFalse(dict.isRehashing(), "Rehash bitmeli");
         // Tüm key'ler hâlâ var
         for (int i = 0; i < count; i++) {
-            Assert.assertNotNull(dict.get(("bigkey" + i).getBytes()));
+            assertNotNull(dict.get(("bigkey" + i).getBytes()));
         }
-        Assert.assertEquals(count, dict.size());
+        assertEquals(count, dict.size());
     }
 
     /** Rehash sırasında DEL doğru çalışmalı */
@@ -84,12 +84,12 @@ public class IncrementalRehashTest {
             dict.put(("dk" + i).getBytes(), RedisObject.string(
                     new RString("v".getBytes(), dict.getMemoryManager())));
         }
-        Assert.assertTrue("Rehash başlamalı", dict.isRehashing());
+        assertTrue(dict.isRehashing(), "Rehash başlamalı");
 
         // Ortadaki bir key sil
         dict.remove("dk10".getBytes());
-        Assert.assertNull(dict.get("dk10".getBytes()));
-        Assert.assertNotNull(dict.get("dk5".getBytes()));
+        assertNull(dict.get("dk10".getBytes()));
+        assertNotNull(dict.get("dk5".getBytes()));
     }
 
     /** Rehash sırasında size() her iki tablodan doğru toplamı göstermeli */
@@ -99,10 +99,10 @@ public class IncrementalRehashTest {
             dict.put(("sk" + i).getBytes(), RedisObject.string(
                     new RString("v".getBytes(), dict.getMemoryManager())));
         }
-        Assert.assertEquals(20, dict.size());
+        assertEquals(20, dict.size());
         // Rehash sırasında da size değişmemeli
         if (dict.isRehashing()) {
-            Assert.assertEquals(20, dict.size());
+            assertEquals(20, dict.size());
         }
     }
 
@@ -118,8 +118,8 @@ public class IncrementalRehashTest {
                 new RString("updated".getBytes(), dict.getMemoryManager())));
 
         RedisObject val = dict.get("uk5".getBytes());
-        Assert.assertNotNull(val);
-        Assert.assertEquals("updated", new String(((RString) val.getValue()).getBytes()));
+        assertNotNull(val);
+        assertEquals("updated", new String(((RString) val.getValue()).getBytes()));
     }
 
     /** Tek operasyonun süresi makul olmalı (donma yok) */
@@ -142,6 +142,6 @@ public class IncrementalRehashTest {
         bigMem.shutdown();
 
         long maxMs = maxNs / 1_000_000;
-        Assert.assertTrue("Max tek operasyon < 5ms, actual=" + maxMs + "ms", maxMs < 5);
+        assertTrue(maxMs < 5, "Max tek operasyon < 5ms, actual=" + maxMs + "ms");
     }
 }

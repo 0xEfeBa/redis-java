@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import org.junit.jupiter.api.Test;
 
-import com.redisjava.testutil.Assert;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,8 +50,8 @@ public class AeEventLoopTest {
 
     public void testGetPort_validRange() {
         if (!serverStarted) return;
-        Assert.assertTrue("port > 0", port > 0);
-        Assert.assertTrue("port < 65536", port < 65536);
+        assertTrue(port > 0, "port > 0");
+        assertTrue(port < 65536, "port < 65536");
     }
 
     // ── Echo testi ───────────────────────────────────────────────────────
@@ -70,7 +70,7 @@ public class AeEventLoopTest {
             byte[] buf = new byte[256];
             int n = in.read(buf);
             String response = new String(buf, 0, n, StandardCharsets.UTF_8);
-            Assert.assertEquals(msg, response);
+            assertEquals(msg, response);
         }
     }
 
@@ -89,7 +89,7 @@ public class AeEventLoopTest {
                 byte[] buf = new byte[256];
                 int n = in.read(buf);
                 String resp = new String(buf, 0, n, StandardCharsets.UTF_8);
-                Assert.assertEquals(msg, resp);
+                assertEquals(msg, resp);
             }
         }
     }
@@ -120,7 +120,7 @@ public class AeEventLoopTest {
         for (Thread t : threads) t.join(3000);
 
         for (int i = 0; i < clientCount; i++) {
-            Assert.assertTrue("client " + i + " correct echo", results[i]);
+            assertTrue(results[i], "client " + i + " correct echo");
         }
     }
 
@@ -133,9 +133,9 @@ public class AeEventLoopTest {
 
         byte[] buf = new byte[256];
         int n = socket.getInputStream().read(buf);
-        Assert.assertEquals(4, n);
+        assertEquals(4, n);
 
         socket.close();
-        Assert.assertTrue("socket closed", socket.isClosed());
+        assertTrue(socket.isClosed(), "socket closed");
     }
 }

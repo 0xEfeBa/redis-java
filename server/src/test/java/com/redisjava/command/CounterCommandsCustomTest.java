@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import com.redisjava.datastruct.Db;
 import com.redisjava.memory.MemoryManager;
 import com.redisjava.protocol.RespToken;
-import com.redisjava.testutil.Assert;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit tests for INCR / DECR / INCRBY / DECRBY.
@@ -35,7 +35,7 @@ public class CounterCommandsCustomTest {
     @Test
     public void testIncr_newKey_startsAt1() {
         incr.execute(conn, args("INCR", "ctr"));
-        Assert.assertEquals(":1\r\n", conn.getLastResponse());
+        assertEquals(":1\r\n", conn.getLastResponse());
     }
 
     /** INCR mevcut key'i bir artırır */
@@ -44,7 +44,7 @@ public class CounterCommandsCustomTest {
         incr.execute(conn, args("INCR", "c2"));
         conn.clear();
         incr.execute(conn, args("INCR", "c2"));
-        Assert.assertEquals(":2\r\n", conn.getLastResponse());
+        assertEquals(":2\r\n", conn.getLastResponse());
     }
 
     /** INCR art arda 5 kez → 5 */
@@ -54,7 +54,7 @@ public class CounterCommandsCustomTest {
             conn.clear();
             incr.execute(conn, args("INCR", "cnt5"));
         }
-        Assert.assertEquals(":5\r\n", conn.getLastResponse());
+        assertEquals(":5\r\n", conn.getLastResponse());
     }
 
     /** INCR hash tipine uygulanırsa WRONGTYPE */
@@ -63,7 +63,7 @@ public class CounterCommandsCustomTest {
         new HSetCommand().execute(conn, args("HSET", "myhash", "f", "v"));
         conn.clear();
         incr.execute(conn, args("INCR", "myhash"));
-        Assert.assertTrue("WRONGTYPE hatası", conn.getLastResponse().startsWith("-WRONGTYPE"));
+        assertTrue(conn.getLastResponse().startsWith("-WRONGTYPE"), "WRONGTYPE hatası");
     }
 
     /** INCR integer olmayan string'de ERR */
@@ -72,7 +72,7 @@ public class CounterCommandsCustomTest {
         set.execute(conn, args("SET", "str", "hello"));
         conn.clear();
         incr.execute(conn, args("INCR", "str"));
-        Assert.assertTrue("ERR hatası", conn.getLastResponse().startsWith("-ERR"));
+        assertTrue(conn.getLastResponse().startsWith("-ERR"), "ERR hatası");
     }
 
     // ── DECR ──────────────────────────────────────────────────────────────
@@ -83,14 +83,14 @@ public class CounterCommandsCustomTest {
         set.execute(conn, args("SET", "d1", "10"));
         conn.clear();
         decr.execute(conn, args("DECR", "d1"));
-        Assert.assertEquals(":9\r\n", conn.getLastResponse());
+        assertEquals(":9\r\n", conn.getLastResponse());
     }
 
     /** DECR yeni key'i -1'den başlatır */
     @Test
     public void testDecr_newKey_startsAtMinus1() {
         decr.execute(conn, args("DECR", "newDecr"));
-        Assert.assertEquals(":-1\r\n", conn.getLastResponse());
+        assertEquals(":-1\r\n", conn.getLastResponse());
     }
 
     // ── INCRBY ────────────────────────────────────────────────────────────
@@ -99,10 +99,10 @@ public class CounterCommandsCustomTest {
     @Test
     public void testIncrBy_positiveAmount() {
         incrBy.execute(conn, args("INCRBY", "ib1", "5"));
-        Assert.assertEquals(":5\r\n", conn.getLastResponse());
+        assertEquals(":5\r\n", conn.getLastResponse());
         conn.clear();
         incrBy.execute(conn, args("INCRBY", "ib1", "10"));
-        Assert.assertEquals(":15\r\n", conn.getLastResponse());
+        assertEquals(":15\r\n", conn.getLastResponse());
     }
 
     /** INCRBY negatif miktar → değeri azaltır */
@@ -111,14 +111,14 @@ public class CounterCommandsCustomTest {
         set.execute(conn, args("SET", "ib2", "20"));
         conn.clear();
         incrBy.execute(conn, args("INCRBY", "ib2", "-5"));
-        Assert.assertEquals(":15\r\n", conn.getLastResponse());
+        assertEquals(":15\r\n", conn.getLastResponse());
     }
 
     /** INCRBY integer olmayan delta → ERR */
     @Test
     public void testIncrBy_nonIntegerDelta_returnsError() {
         incrBy.execute(conn, args("INCRBY", "ib3", "notanumber"));
-        Assert.assertTrue("ERR hatası", conn.getLastResponse().startsWith("-ERR"));
+        assertTrue(conn.getLastResponse().startsWith("-ERR"), "ERR hatası");
     }
 
     // ── DECRBY ────────────────────────────────────────────────────────────
@@ -129,7 +129,7 @@ public class CounterCommandsCustomTest {
         set.execute(conn, args("SET", "db1", "20"));
         conn.clear();
         decrBy.execute(conn, args("DECRBY", "db1", "5"));
-        Assert.assertEquals(":15\r\n", conn.getLastResponse());
+        assertEquals(":15\r\n", conn.getLastResponse());
     }
 
     /** DECRBY negatif miktar → değeri artırır */
@@ -138,7 +138,7 @@ public class CounterCommandsCustomTest {
         set.execute(conn, args("SET", "db2", "10"));
         conn.clear();
         decrBy.execute(conn, args("DECRBY", "db2", "-3"));
-        Assert.assertEquals(":13\r\n", conn.getLastResponse());
+        assertEquals(":13\r\n", conn.getLastResponse());
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────

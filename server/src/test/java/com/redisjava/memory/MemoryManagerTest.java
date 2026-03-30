@@ -2,7 +2,7 @@ package com.redisjava.memory;
 
 import org.junit.jupiter.api.Test;
 
-import com.redisjava.testutil.Assert;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,11 +19,11 @@ public class MemoryManagerTest {
 
     public void testDirectBufferUtils_allocWriteReadFree() {
         long address = DirectBufferUtils.allocate(1024);
-        Assert.assertTrue("adres != 0", address != 0);
+        assertTrue(address != 0, "adres != 0");
 
         DirectBufferUtils.putInt(address, 123456789);
         int value = DirectBufferUtils.getInt(address);
-        Assert.assertEquals(123456789, value);
+        assertEquals(123456789, value);
 
         DirectBufferUtils.free(address);
     }
@@ -31,11 +31,11 @@ public class MemoryManagerTest {
 
     public void testDirectBufferUtils_putGetLong() {
         long address = DirectBufferUtils.allocate(16);
-        Assert.assertTrue("adres != 0", address != 0);
+        assertTrue(address != 0, "adres != 0");
 
         long expected = 0xDEAD_BEEF_0000_0001L;
         DirectBufferUtils.putLong(address, expected);
-        Assert.assertEquals(expected, DirectBufferUtils.getLong(address));
+        assertEquals(expected, DirectBufferUtils.getLong(address));
 
         DirectBufferUtils.free(address);
     }
@@ -44,7 +44,7 @@ public class MemoryManagerTest {
     public void testDirectBufferUtils_putGetByte() {
         long address = DirectBufferUtils.allocate(8);
         DirectBufferUtils.putByte(address, (byte) 42);
-        Assert.assertEquals((byte) 42, DirectBufferUtils.getByte(address));
+        assertEquals((byte) 42, DirectBufferUtils.getByte(address));
         DirectBufferUtils.free(address);
     }
 
@@ -61,7 +61,7 @@ public class MemoryManagerTest {
         }
 
         int chunkCount = mm.getAllocatedChunkCount();
-        Assert.assertTrue("bellek sızıntısı yok (chunk <= 2)", chunkCount <= 2);
+        assertTrue(chunkCount <= 2, "bellek sızıntısı yok (chunk <= 2)");
         mm.shutdown();
     }
 
@@ -82,7 +82,7 @@ public class MemoryManagerTest {
             mm.free(addr);
         }
 
-        Assert.assertTrue("tüm tahsisler serbest bırakıldı", true);
+        assertTrue(true, "tüm tahsisler serbest bırakıldı");
         mm.shutdown();
     }
 
@@ -94,8 +94,8 @@ public class MemoryManagerTest {
         SlabCache slab = new SlabCache(64, mm);
 
         long addr = slab.alloc();
-        Assert.assertTrue("geçerli adres döndü", addr != -1 && addr != 0);
-        Assert.assertEquals(1, mm.getAllocatedChunkCount());
+        assertTrue(addr != -1 && addr != 0, "geçerli adres döndü");
+        assertEquals(1, mm.getAllocatedChunkCount());
 
         mm.shutdown();
     }
@@ -104,7 +104,7 @@ public class MemoryManagerTest {
     public void testSlabCache_getObjectSize() {
         MemoryManager mm = new MemoryManager(4);
         SlabCache slab = new SlabCache(128, mm);
-        Assert.assertEquals(128, slab.getObjectSize());
+        assertEquals(128, slab.getObjectSize());
         mm.shutdown();
     }
     @Test
@@ -117,11 +117,11 @@ public class MemoryManagerTest {
         long a2 = slab.alloc();
         long a3 = slab.alloc();
 
-        Assert.assertTrue("a1 geçerli", a1 != -1);
-        Assert.assertTrue("a2 geçerli", a2 != -1);
-        Assert.assertTrue("a3 geçerli", a3 != -1);
-        Assert.assertTrue("a1 != a2", a1 != a2);
-        Assert.assertTrue("a2 != a3", a2 != a3);
+        assertTrue(a1 != -1, "a1 geçerli");
+        assertTrue(a2 != -1, "a2 geçerli");
+        assertTrue(a3 != -1, "a3 geçerli");
+        assertTrue(a1 != a2, "a1 != a2");
+        assertTrue(a2 != a3, "a2 != a3");
 
         mm.shutdown();
     }
@@ -136,10 +136,10 @@ public class MemoryManagerTest {
 
         pageMap.put(baseAddress, com.redisjava.util.MemoryConstants.CHUNK_SIZE, chunkId);
 
-        Assert.assertEquals(chunkId, pageMap.get(baseAddress));
-        Assert.assertEquals(chunkId, pageMap.get(baseAddress + com.redisjava.util.MemoryConstants.CHUNK_SIZE / 2));
-        Assert.assertEquals(chunkId, pageMap.get(baseAddress + com.redisjava.util.MemoryConstants.CHUNK_SIZE - 1));
-        Assert.assertEquals(PageMap.NOT_FOUND, pageMap.get(baseAddress + com.redisjava.util.MemoryConstants.CHUNK_SIZE));
+        assertEquals(chunkId, pageMap.get(baseAddress));
+        assertEquals(chunkId, pageMap.get(baseAddress + com.redisjava.util.MemoryConstants.CHUNK_SIZE / 2));
+        assertEquals(chunkId, pageMap.get(baseAddress + com.redisjava.util.MemoryConstants.CHUNK_SIZE - 1));
+        assertEquals(PageMap.NOT_FOUND, pageMap.get(baseAddress + com.redisjava.util.MemoryConstants.CHUNK_SIZE));
     }
     @Test
 
@@ -151,7 +151,7 @@ public class MemoryManagerTest {
         } catch (IllegalArgumentException e) {
             threw = true;
         }
-        Assert.assertTrue("negatif chunkId exception fırlattı", threw);
+        assertTrue(threw, "negatif chunkId exception fırlattı");
     }
     @Test
 
@@ -161,9 +161,9 @@ public class MemoryManagerTest {
         int chunkId = 10;
 
         pageMap.put(base, com.redisjava.util.MemoryConstants.CHUNK_SIZE, chunkId);
-        Assert.assertEquals(chunkId, pageMap.get(base));
+        assertEquals(chunkId, pageMap.get(base));
 
         pageMap.remove(base, com.redisjava.util.MemoryConstants.CHUNK_SIZE);
-        Assert.assertEquals(PageMap.NOT_FOUND, pageMap.get(base));
+        assertEquals(PageMap.NOT_FOUND, pageMap.get(base));
     }
 }

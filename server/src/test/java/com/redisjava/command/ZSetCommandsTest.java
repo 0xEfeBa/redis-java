@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import com.redisjava.datastruct.Db;
 import com.redisjava.memory.MemoryManager;
 import com.redisjava.protocol.RedisProtocolHandler;
-import com.redisjava.testutil.Assert;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.ByteBuffer;
 
@@ -45,67 +45,67 @@ public class ZSetCommandsTest {
     @Test
 
     public void testZadd_newElement_returns1() {
-        Assert.assertEquals(":1\r\n", exec("ZADD", "myzset", "1", "a"));
+        assertEquals(":1\r\n", exec("ZADD", "myzset", "1", "a"));
     }
     @Test
 
     public void testZadd_existingElement_returns0() {
         exec("ZADD", "myzset", "1", "a");
-        Assert.assertEquals(":0\r\n", exec("ZADD", "myzset", "2", "a"));
+        assertEquals(":0\r\n", exec("ZADD", "myzset", "2", "a"));
     }
     @Test
 
     public void testZadd_multipleElements() {
         // 3 new elements → returns 3
-        Assert.assertEquals(":3\r\n", exec("ZADD", "myzset", "1", "a", "2", "b", "3", "c"));
+        assertEquals(":3\r\n", exec("ZADD", "myzset", "1", "a", "2", "b", "3", "c"));
     }
 
     // ── ZCARD ─────────────────────────────────────────────────────────────
     @Test
 
     public void testZcard_emptyKey_returns0() {
-        Assert.assertEquals(":0\r\n", exec("ZCARD", "nosuchkey"));
+        assertEquals(":0\r\n", exec("ZCARD", "nosuchkey"));
     }
     @Test
 
     public void testZcard_afterAdds() {
         exec("ZADD", "myzset", "1", "a", "2", "b", "3", "c");
-        Assert.assertEquals(":3\r\n", exec("ZCARD", "myzset"));
+        assertEquals(":3\r\n", exec("ZCARD", "myzset"));
     }
 
     // ── ZSCORE ────────────────────────────────────────────────────────────
     @Test
 
     public void testZscore_missingKey_returnsNull() {
-        Assert.assertEquals("$-1\r\n", exec("ZSCORE", "nosuchkey", "a"));
+        assertEquals("$-1\r\n", exec("ZSCORE", "nosuchkey", "a"));
     }
     @Test
 
     public void testZscore_missingMember_returnsNull() {
         exec("ZADD", "myzset", "1", "a");
-        Assert.assertEquals("$-1\r\n", exec("ZSCORE", "myzset", "x"));
+        assertEquals("$-1\r\n", exec("ZSCORE", "myzset", "x"));
     }
     @Test
 
     public void testZscore_returnsCorrectScore() {
         exec("ZADD", "myzset", "42", "a");
         String resp = exec("ZSCORE", "myzset", "a");
-        Assert.assertTrue("Score should be 42", resp.contains("42"));
+        assertTrue(resp.contains("42"), "Score should be 42");
     }
 
     // ── ZRANK ─────────────────────────────────────────────────────────────
     @Test
 
     public void testZrank_missingMember_returnsNull() {
-        Assert.assertEquals("$-1\r\n", exec("ZRANK", "myzset", "x"));
+        assertEquals("$-1\r\n", exec("ZRANK", "myzset", "x"));
     }
     @Test
 
     public void testZrank_ascendingOrder() {
         exec("ZADD", "myzset", "3", "c", "1", "a", "2", "b");
-        Assert.assertEquals(":0\r\n", exec("ZRANK", "myzset", "a"));
-        Assert.assertEquals(":1\r\n", exec("ZRANK", "myzset", "b"));
-        Assert.assertEquals(":2\r\n", exec("ZRANK", "myzset", "c"));
+        assertEquals(":0\r\n", exec("ZRANK", "myzset", "a"));
+        assertEquals(":1\r\n", exec("ZRANK", "myzset", "b"));
+        assertEquals(":2\r\n", exec("ZRANK", "myzset", "c"));
     }
 
     // ── ZRANGE ────────────────────────────────────────────────────────────
@@ -114,22 +114,22 @@ public class ZSetCommandsTest {
     public void testZrange_fullRange() {
         exec("ZADD", "myzset", "1", "a", "2", "b", "3", "c");
         String resp = exec("ZRANGE", "myzset", "0", "-1");
-        Assert.assertTrue("contains a", resp.contains("$1\r\na\r\n"));
-        Assert.assertTrue("contains b", resp.contains("$1\r\nb\r\n"));
-        Assert.assertTrue("contains c", resp.contains("$1\r\nc\r\n"));
+        assertTrue(resp.contains("$1\r\na\r\n"), "contains a");
+        assertTrue(resp.contains("$1\r\nb\r\n"), "contains b");
+        assertTrue(resp.contains("$1\r\nc\r\n"), "contains c");
     }
     @Test
 
     public void testZrange_withScores() {
         exec("ZADD", "myzset", "1", "a");
         String resp = exec("ZRANGE", "myzset", "0", "-1", "WITHSCORES");
-        Assert.assertTrue("contains member", resp.contains("$1\r\na\r\n"));
-        Assert.assertTrue("contains score", resp.contains("$1\r\n1\r\n"));
+        assertTrue(resp.contains("$1\r\na\r\n"), "contains member");
+        assertTrue(resp.contains("$1\r\n1\r\n"), "contains score");
     }
     @Test
 
     public void testZrange_emptyKey_returnsEmptyArray() {
-        Assert.assertEquals("*0\r\n", exec("ZRANGE", "nosuchkey", "0", "-1"));
+        assertEquals("*0\r\n", exec("ZRANGE", "nosuchkey", "0", "-1"));
     }
 
     // ── ZREM ──────────────────────────────────────────────────────────────
@@ -137,19 +137,19 @@ public class ZSetCommandsTest {
 
     public void testZrem_existingMember_returns1() {
         exec("ZADD", "myzset", "1", "a");
-        Assert.assertEquals(":1\r\n", exec("ZREM", "myzset", "a"));
+        assertEquals(":1\r\n", exec("ZREM", "myzset", "a"));
     }
     @Test
 
     public void testZrem_missingMember_returns0() {
-        Assert.assertEquals(":0\r\n", exec("ZREM", "myzset", "x"));
+        assertEquals(":0\r\n", exec("ZREM", "myzset", "x"));
     }
     @Test
 
     public void testZrem_removesKeyWhenEmpty() {
         exec("ZADD", "myzset", "1", "only");
         exec("ZREM", "myzset", "only");
-        Assert.assertEquals(":0\r\n", exec("ZCARD", "myzset"));
+        assertEquals(":0\r\n", exec("ZCARD", "myzset"));
     }
 
     // ── Type safety ───────────────────────────────────────────────────────
@@ -158,6 +158,6 @@ public class ZSetCommandsTest {
     public void testZset_wrongType_returnsError() {
         exec("SET", "strkey", "value");
         String resp = exec("ZADD", "strkey", "1", "member");
-        Assert.assertTrue("Should return WRONGTYPE error", resp.startsWith("-WRONGTYPE"));
+        assertTrue(resp.startsWith("-WRONGTYPE"), "Should return WRONGTYPE error");
     }
 }

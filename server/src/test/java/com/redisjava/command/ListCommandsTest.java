@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test;
 import com.redisjava.datastruct.Db;
 import com.redisjava.memory.MemoryManager;
 import com.redisjava.protocol.RedisProtocolHandler;
-import com.redisjava.testutil.Assert;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.ByteBuffer;
 
@@ -48,13 +48,13 @@ public class ListCommandsTest {
 
     public void testLpush_newKey_returnsLength1() {
         String resp = exec("LPUSH", "mylist", "a");
-        Assert.assertEquals(":1\r\n", resp);
+        assertEquals(":1\r\n", resp);
     }
     @Test
 
     public void testLpush_multipleValues_returnsCorrectLength() {
         String resp = exec("LPUSH", "mylist", "a", "b", "c");
-        Assert.assertEquals(":3\r\n", resp);
+        assertEquals(":3\r\n", resp);
     }
     @Test
 
@@ -63,11 +63,11 @@ public class ListCommandsTest {
         exec("LPUSH", "mylist", "b");
         String resp = exec("LRANGE", "mylist", "0", "-1");
         // b was pushed last → [b, a]
-        Assert.assertTrue("b should be at head", resp.contains("b"));
-        Assert.assertTrue("a should be in list", resp.contains("a"));
+        assertTrue(resp.contains("b"), "b should be at head");
+        assertTrue(resp.contains("a"), "a should be in list");
         int posB = resp.indexOf("$1\r\nb\r\n");
         int posA = resp.indexOf("$1\r\na\r\n");
-        Assert.assertTrue("b should appear before a", posB < posA);
+        assertTrue(posB < posA, "b should appear before a");
     }
 
     // ── RPUSH ─────────────────────────────────────────────────────────────
@@ -75,7 +75,7 @@ public class ListCommandsTest {
 
     public void testRpush_newKey_returnsLength1() {
         String resp = exec("RPUSH", "mylist", "x");
-        Assert.assertEquals(":1\r\n", resp);
+        assertEquals(":1\r\n", resp);
     }
     @Test
 
@@ -86,7 +86,7 @@ public class ListCommandsTest {
         // a was pushed first → [a, b]
         int posA = resp.indexOf("$1\r\na\r\n");
         int posB = resp.indexOf("$1\r\nb\r\n");
-        Assert.assertTrue("a should appear before b", posA < posB);
+        assertTrue(posA < posB, "a should appear before b");
     }
 
     // ── LLEN ──────────────────────────────────────────────────────────────
@@ -94,14 +94,14 @@ public class ListCommandsTest {
 
     public void testLlen_emptyKey_returns0() {
         String resp = exec("LLEN", "nosuchkey");
-        Assert.assertEquals(":0\r\n", resp);
+        assertEquals(":0\r\n", resp);
     }
     @Test
 
     public void testLlen_afterPush_returnsCorrectSize() {
         exec("RPUSH", "mylist", "a", "b", "c");
         String resp = exec("LLEN", "mylist");
-        Assert.assertEquals(":3\r\n", resp);
+        assertEquals(":3\r\n", resp);
     }
 
     // ── LPOP ──────────────────────────────────────────────────────────────
@@ -109,14 +109,14 @@ public class ListCommandsTest {
 
     public void testLpop_emptyKey_returnsNull() {
         String resp = exec("LPOP", "nosuchkey");
-        Assert.assertEquals("$-1\r\n", resp);
+        assertEquals("$-1\r\n", resp);
     }
     @Test
 
     public void testLpop_returnsHead() {
         exec("RPUSH", "mylist", "first", "second");
         String resp = exec("LPOP", "mylist");
-        Assert.assertEquals("$5\r\nfirst\r\n", resp);
+        assertEquals("$5\r\nfirst\r\n", resp);
     }
     @Test
 
@@ -125,7 +125,7 @@ public class ListCommandsTest {
         exec("LPOP", "mylist");
         // LLEN should return 0 (key deleted)
         String resp = exec("LLEN", "mylist");
-        Assert.assertEquals(":0\r\n", resp);
+        assertEquals(":0\r\n", resp);
     }
 
     // ── RPOP ──────────────────────────────────────────────────────────────
@@ -133,14 +133,14 @@ public class ListCommandsTest {
 
     public void testRpop_emptyKey_returnsNull() {
         String resp = exec("RPOP", "nosuchkey");
-        Assert.assertEquals("$-1\r\n", resp);
+        assertEquals("$-1\r\n", resp);
     }
     @Test
 
     public void testRpop_returnsTail() {
         exec("RPUSH", "mylist", "first", "last");
         String resp = exec("RPOP", "mylist");
-        Assert.assertEquals("$4\r\nlast\r\n", resp);
+        assertEquals("$4\r\nlast\r\n", resp);
     }
 
     // ── LRANGE ────────────────────────────────────────────────────────────
@@ -149,34 +149,34 @@ public class ListCommandsTest {
     public void testLrange_fullRange() {
         exec("RPUSH", "mylist", "a", "b", "c");
         String resp = exec("LRANGE", "mylist", "0", "-1");
-        Assert.assertTrue("should contain a", resp.contains("$1\r\na\r\n"));
-        Assert.assertTrue("should contain b", resp.contains("$1\r\nb\r\n"));
-        Assert.assertTrue("should contain c", resp.contains("$1\r\nc\r\n"));
+        assertTrue(resp.contains("$1\r\na\r\n"), "should contain a");
+        assertTrue(resp.contains("$1\r\nb\r\n"), "should contain b");
+        assertTrue(resp.contains("$1\r\nc\r\n"), "should contain c");
     }
     @Test
 
     public void testLrange_subRange() {
         exec("RPUSH", "mylist", "a", "b", "c", "d");
         String resp = exec("LRANGE", "mylist", "1", "2");
-        Assert.assertTrue("should contain b", resp.contains("$1\r\nb\r\n"));
-        Assert.assertTrue("should contain c", resp.contains("$1\r\nc\r\n"));
-        Assert.assertFalse("should NOT contain a", resp.contains("$1\r\na\r\n"));
-        Assert.assertFalse("should NOT contain d", resp.contains("$1\r\nd\r\n"));
+        assertTrue(resp.contains("$1\r\nb\r\n"), "should contain b");
+        assertTrue(resp.contains("$1\r\nc\r\n"), "should contain c");
+        assertFalse(resp.contains("$1\r\na\r\n"), "should NOT contain a");
+        assertFalse(resp.contains("$1\r\nd\r\n"), "should NOT contain d");
     }
     @Test
 
     public void testLrange_negativeIndices() {
         exec("RPUSH", "mylist", "a", "b", "c");
         String resp = exec("LRANGE", "mylist", "-2", "-1");
-        Assert.assertTrue("should contain b", resp.contains("$1\r\nb\r\n"));
-        Assert.assertTrue("should contain c", resp.contains("$1\r\nc\r\n"));
-        Assert.assertFalse("should NOT contain a", resp.contains("$1\r\na\r\n"));
+        assertTrue(resp.contains("$1\r\nb\r\n"), "should contain b");
+        assertTrue(resp.contains("$1\r\nc\r\n"), "should contain c");
+        assertFalse(resp.contains("$1\r\na\r\n"), "should NOT contain a");
     }
     @Test
 
     public void testLrange_emptyKey_returnsEmptyArray() {
         String resp = exec("LRANGE", "nosuchkey", "0", "-1");
-        Assert.assertEquals("*0\r\n", resp);
+        assertEquals("*0\r\n", resp);
     }
 
     // ── Type safety ───────────────────────────────────────────────────────
@@ -185,6 +185,6 @@ public class ListCommandsTest {
     public void testList_wrongType_returnsError() {
         exec("SET", "strkey", "value");
         String resp = exec("LPUSH", "strkey", "newval");
-        Assert.assertTrue("Should return WRONGTYPE error", resp.startsWith("-WRONGTYPE"));
+        assertTrue(resp.startsWith("-WRONGTYPE"), "Should return WRONGTYPE error");
     }
 }

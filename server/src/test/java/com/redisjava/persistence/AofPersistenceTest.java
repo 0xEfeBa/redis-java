@@ -2,7 +2,10 @@ package com.redisjava.persistence;
 
 import com.redisjava.datastruct.Db;
 import com.redisjava.memory.MemoryManager;
-import com.redisjava.testutil.Assert;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Field;
@@ -22,12 +25,14 @@ public class AofPersistenceTest {
 
     private Path tempDir;
 
+    @BeforeEach
     public void setup() throws Exception {
         tempDir = Files.createTempDirectory("aof-test");
         Db.init(new MemoryManager(10));
         Db.getInstance().clear();
     }
 
+    @AfterEach
     public void teardown() {
         Db existing = Db.getInstanceSafe();
         if (existing != null) existing.shutdown();
@@ -42,6 +47,7 @@ public class AofPersistenceTest {
 
     // ── Büyük AOF yükleme ─────────────────────────────────────────────────
 
+    @Test
     public void testLoadBigAofFile_5000Commands() throws Exception {
         Path aofFile = tempDir.resolve("big.aof");
         int totalCommands = 5000;
@@ -65,12 +71,13 @@ public class AofPersistenceTest {
         }
 
         int loaded = AofLoader.load(aofFile, Db.getInstance());
-        Assert.assertEquals(totalCommands, loaded);
-        Assert.assertEquals(totalCommands, Db.getInstance().size());
+        assertEquals(totalCommands, loaded);
+        assertEquals(totalCommands, Db.getInstance().size());
     }
 
     // ── Kısmi yazma yönetimi ──────────────────────────────────────────────
 
+    @Test
     public void testPartialWrite_handledCorrectly() throws Exception {
         Path aofPath = tempDir.resolve("partial.aof");
         AofManager.init(aofPath);
@@ -89,10 +96,10 @@ public class AofPersistenceTest {
         byte[] written = partialChannel.getWrittenBytes();
         byte[] expected = buildExpectedSetCommand(key, value);
 
-        Assert.assertEquals(expected.length, written.length);
-        Assert.assertEquals('\r', written[written.length - 2]);
-        Assert.assertEquals('\n', written[written.length - 1]);
-        Assert.assertTrue("birden fazla write çağrısı", partialChannel.getWriteCalls() > 1);
+        assertEquals(expected.length, written.length);
+        assertEquals('\r', written[written.length - 2]);
+        assertEquals('\n', written[written.length - 1]);
+        assertTrue(partialChannel.getWriteCalls() > 1, "birden fazla write çağrısı");
     }
 
     // ── Yardımcı metodlar ─────────────────────────────────────────────────

@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import com.redisjava.datastruct.Db;
 import com.redisjava.memory.MemoryManager;
-import com.redisjava.testutil.Assert;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class TtlReaperTest {
 
@@ -21,7 +21,7 @@ public class TtlReaperTest {
 
     public void testRunCycle_emptyDb_returnsZero() {
         int expired = reaper.runCycle(System.currentTimeMillis());
-        Assert.assertEquals(0, expired);
+        assertEquals(0, expired);
     }
     @Test
 
@@ -29,7 +29,7 @@ public class TtlReaperTest {
         Db db = Db.getInstance();
         db.set("key1".getBytes(), "val1".getBytes(), System.currentTimeMillis() + 3_600_000);
         int expired = reaper.runCycle(System.currentTimeMillis());
-        Assert.assertEquals(0, expired);
+        assertEquals(0, expired);
     }
     @Test
 
@@ -44,12 +44,12 @@ public class TtlReaperTest {
         for (int c = 0; c < 5; c++) {
             total += reaper.runCycle(nowMs);
         }
-        Assert.assertTrue("Should have expired 3 keys, got " + total, total >= 3);
+        assertTrue(total >= 3, "Should have expired 3 keys, got " + total);
     }
     @Test
 
     public void testAdaptiveSampling_initialSamplesIsMinimum() {
-        Assert.assertEquals(20, reaper.getCurrentSamples());
+        assertEquals(20, reaper.getCurrentSamples());
     }
     @Test
 
@@ -57,6 +57,6 @@ public class TtlReaperTest {
         int before = reaper.getCurrentSamples();
         reaper.runCycle(System.currentTimeMillis());
         int after = reaper.getCurrentSamples();
-        Assert.assertTrue("Samples should not increase when nothing expired", after <= before);
+        assertTrue(after <= before, "Samples should not increase when nothing expired");
     }
 }
